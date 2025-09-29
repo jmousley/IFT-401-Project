@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<title>Stock List</title>
+</head>
+    <body>
+        <div class="container mt-5">
+        <h1>List of Stocks</h1> 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <table class="table table-dark"> 
+            <thead> 
+                <tr> 
+                    <th>Name</th> 
+                    <th>Price per stock</th> 
+                    <th>Quantity remaining</th> 
+                </tr> 
+            </thead> 
+            <tbody>
+                {% for stock in stocks %}
+                <tr> 
+                    <td>{{ stock.name }}</td> 
+                    <td>${{ stock.price }}</td> 
+                    <td>{{ stock.quantity }}</td> 
+                </tr> 
+                {% else %} 
+                <tr> 
+                    <td colspan="6">The Stock List is empty.</td> 
+                </tr> 
+                {% endfor %} 
+            </tbody> 
+        </table> 
+        </div>
+    </body>
+{% endblock %}

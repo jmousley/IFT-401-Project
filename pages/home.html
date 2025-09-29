@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul>
+      {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+
+<div class="row">
+  <div class="col-md-12">
+    <h1 class="display-4">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
+    <p class="lead">This site is under construction.</p>
+  </div>
+</div>
+<div class="col-md-12">
+  <div class="col-md-4">
+    <div class="card text-white bg-secondary"><div class="card-body">
+      <h5 class="card-title">Welcome back</h5>
+      <p class="card-text">Please log in to gain access to our services.</p>
+      <a href="#" class="btn btn-primary">Login</a>
+      <a href="#" class="btn btn-primary">Sign Up</a>
+    </div></div>
+  </div>
+  <br>
+  <div class="col-md-4">
+    <div class="d-grid gap-2">
+      <button class="btn btn-primary">Contact Us</button>
+      <button class="btn btn-secondary">Support</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
