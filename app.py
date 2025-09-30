@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 app = Flask(__name__, template_folder="pages")
 
@@ -73,6 +74,10 @@ def about():
 def stocks():
     stocks = Stock.query.all()
     return render_template('stocks.html', stocks=stocks)
+
+@app.route("/login_signup")
+def login_signup():
+    return render_template('login_signup.html')
 
 #Routes to ADD database tables
 
