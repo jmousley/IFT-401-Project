@@ -338,6 +338,11 @@ def delete_portfolio(id):
         flash(f'Error deleting portfolio: {str(e)}', 'error')
     return redirect(url_for('stocks'))
 
+@app.route('/test')
+def test_page():
+    return render_template('test.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
