@@ -2,5 +2,32 @@
 {% block title %}Home{% endblock %}
 {% block content %}
 <title>Sell Stock</title>
-
+  <table class="table table-dark"> 
+            <thead> 
+                <tr> 
+                    <th>Name</th> 
+                    <th>balance</th>
+                    <th>Stock price</th> 
+                    <th>Shares</th> 
+                    <th>New Balance</th>
+                </tr> 
+            </thead> 
+            <tbody>
+                {% for stock in stocks %}
+                <tr> 
+                    <td>{{ sell.name }}</td> 
+                    <td>${{ sell.price }}</td> 
+                    <td>{{ sell.quantity }}</td> 
+                    <td>{{ sell.shares }}</td>
+                    <td>{{ sell.new_balance }}</td>
+                </tr> 
+                {% else %} 
+                <tr> 
+                    <td colspan="6">The Sell List is empty.</td> 
+                </tr> 
+                {% endfor %} 
+            </tbody> 
+        </table> 
+        </div>
+    </body>
 {% endblock %}
