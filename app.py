@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 app = Flask(__name__, template_folder="pages")
 
@@ -73,6 +74,24 @@ def about():
 def stocks():
     stocks = Stock.query.all()
     return render_template('stocks.html', stocks=stocks)
+
+@app.route("/login_signup")
+def login_signup():
+    return render_template('login_signup.html')
+
+@app.route("/buy")
+def buy():
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
+    user = User.query.get_or_404(1)
+    balance = user.balance
+    return render_template("buy.html", stocks=stocks, balance=balance)
+
+@app.route("/sell")
+def sell():
+    stocks = Stock.query.all()
+    user = User.query.get_or_404(1)
+    balance = user.balance
+    return render_template('sell.html', stocks=stocks, balance=balance)
 
 #Routes to ADD database tables
 
@@ -152,6 +171,84 @@ def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
+#FULL BUY STOCK PROCESS
+@app.route('/buy_stock', methods=["POST"])
+def buy_stock():
+    stock_id = request.form['stock_id']
+    stock = Stock.query.get_or_404(stock_id)
+    stock_price = stock.price
+    quantity = request.form['quantity']
+    total_price = stock_price * float(quantity)
+
+    #this is static because i (currently) don't know how to track which user is logged in.
+    user = User.query.get_or_404(1)
+
+    if user.balance < total_price:
+        flash("Insufficient funds", "danger")
+        return redirect(url_for("stocks"))
+    
+    try:
+        user.balance -= total_price
+        db.session.commit()
+        flash(f"Successfully bought {quantity} * {stock.name} for ${total_price:.2f}.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error completing purchase: {str(e)}", "danger")
+        return redirect(url_for("stocks"))
+    
+    #ADD TO PORTFOLIO, IF X USER HAS X STOCK ALREADY, ADD TO IT, OTHERWISE MAKE NEW ENTRY
+    portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
+    if portfolio_entry:
+        portfolio_entry.quantity += int(quantity)
+    else:
+        portfolio_entry = Portfolio(user_id=user.id, stock_id=stock.id, quantity=quantity)
+        db.session.add(portfolio_entry)
+
+    #end
+    db.session.commit()
+    return redirect(url_for("stocks"))
+
+
+#FULL SELL STOCK PROCESS
+@app.route('/sell_stock', methods=["POST"])
+def sell_stock():
+    stock_id = request.form['stock_id']
+    stock = Stock.query.get_or_404(stock_id)
+    stock_price = stock.price
+    quantity = request.form['quantity']
+    total_price = stock_price * float(quantity)
+
+    #this is static because i (currently) don't know how to track which user is logged in.
+    user = User.query.get_or_404(1)
+
+    #CHECK IF PORTFOLIO HAS ENOUGH STOCK TO PULL FROM; ELSE RETURN TO PAGE
+    portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
+    if not portfolio_entry:
+        flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
+        return redirect(url_for("stocks"))
+    
+    elif portfolio_entry.quantity < int(quantity):
+        flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
+        return redirect(url_for("stocks"))
+    else:
+        portfolio_entry.quantity -= int(quantity)
+    try:
+         user.balance += total_price
+         db.session.commit()
+         flash(f"Successfully sold {quantity} {stock.name} stock for ${total_price:.2f}.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error completing sale: {str(e)}", "danger")
+        return redirect(url_for("stocks"))
+        
+    #end
+    db.session.commit()
+    return redirect(url_for("stocks"))
+
+
+
 #Add Portfolio Route
 @app.route('/add_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>')
 def add_portfolio(quantity, user_id, stock_id):
@@ -171,9 +268,57 @@ def add_portfolio(quantity, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
+#Add Sell Route
+'''@app.route("/sell_stock/<float:balance>/<float:price>/<float:shares>", methods=["POST", "GET"])
+def sell_stock(balance: float,price : int, shares: int):
+    if not balance or not price or not shares:
+        flash('Fill all fields!', 'error')
+        return redirect(url_for('home'))   
+
+    sell_stock = Sell(balance=balance, price=price, shares=shares) 
+    new_balance = (balance - (price * shares))'''
 
 
 #Routes to EDIT database tables
+
+#Add to balance
+@app.route('/add_funds/<int:id>')
+def add_funds(id):
+    
+    user = User.query.get_or_404(id)
+    #amount = request.form['addamount']
+    amount = 1000.00
+    new_amount = user.balance + float(amount)
+
+    try:
+        user.balance = new_amount
+        db.session.commit()
+        flash('Success!', 'success')
+        return redirect(url_for('home'))
+
+    except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('home'))
+    
+
+#Subtract from balance
+# @app.route('/subtract_funds/<int:id>/<float:amount>', methods=['GET', 'POST'])
+# def subtract_funds(id, amount):
+    
+#     user = User.query.get_or_404(id)
+#     new_amount = user.balance - float(amount)
+
+#     try:
+#         user.balance = new_amount
+#         db.session.commit()
+#         flash('Success!', 'success')
+#         return redirect(url_for('home'))
+
+#     except Exception as e:
+#             flash(f'Error: {str(e)}', 'error')
+#             return redirect(url_for('home'))
+
+
 #Stock
 @app.route('/edit_stock/<string:name>/<float:price>/<int:quantity>/<int:id>')
 def edit_stock(name, price, quantity, id):
@@ -333,7 +478,13 @@ def delete_portfolio(id):
         flash(f'Error deleting portfolio: {str(e)}', 'error')
     return redirect(url_for('stocks'))
 
+@app.route('/test')
+def test_page():
+    return render_template('test.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
 #testing git branch
+#AHHHHHHHHHHHHHHHHHHHHHHHHHHH 

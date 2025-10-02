@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h1>Buy</h1>
+
+  <form method="post" action="/buy_stock">
+    <table class="table table-dark table-hover align-middle mb-3">
+      <thead>
+        <tr>
+          <th style="width:70px;">Select</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Available</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stocks %}
+        <tr>
+          <td class="text-center">
+            <input class="form-check-input" type="radio" name="stock_id" value="{{ s.id }}" required>
+          </td>
+          <td>{{ s.name }}</td>
+          <td>${{ '%.2f'|format(s.price) }}</td>
+          <td>{{ s.quantity }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label for="qty" class="form-label"># of shares:</label>
+        <input id="qty" name="quantity" type="number" class="form-control" min="1" value="1" required>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary mt-4">Buy</button>
+      </div>
+        <p>Balance: ${{ "%.2f"|format(balance) }}</p>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
