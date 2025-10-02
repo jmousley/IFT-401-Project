@@ -167,6 +167,7 @@ def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
+#FULL BUY STOCK PROCESS
 @app.route('/buy_stock', methods=["POST"])
 def buy_stock():
     stock_id = request.form['stock_id']
@@ -175,7 +176,9 @@ def buy_stock():
     quantity = request.form['quantity']
     total_price = stock_price * float(quantity)
 
+    #this is static because i (currently) don't know how to track which user is logged in.
     user = User.query.get_or_404(2)
+
     if user.balance < total_price:
         flash("Insufficient funds", "danger")
         return redirect(url_for("stocks"))
@@ -190,7 +193,6 @@ def buy_stock():
         flash(f"Error completing purchase: {str(e)}", "danger")
         return redirect(url_for("stocks"))
     
-    
     #ADD TO PORTFOLIO, IF X USER HAS X STOCK ALREADY, ADD TO IT, OTHERWISE MAKE NEW ENTRY
     portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
     if portfolio_entry:
@@ -198,10 +200,50 @@ def buy_stock():
     else:
         portfolio_entry = Portfolio(user_id=user.id, stock_id=stock.id, quantity=quantity)
         db.session.add(portfolio_entry)
-        
-    db.session.commit()
+
     #end
+    db.session.commit()
     return redirect(url_for("stocks"))
+
+
+#FULL SELL STOCK PROCESS
+@app.route('/sell_stock', methods=["POST"])
+def sell_stock():
+    stock_id = request.form['stock_id']
+    stock = Stock.query.get_or_404(stock_id)
+    stock_price = stock.price
+    quantity = request.form['quantity']
+    total_price = stock_price * float(quantity)
+
+    #this is static because i (currently) don't know how to track which user is logged in.
+    user = User.query.get_or_404(2)
+
+    #CHECK IF PORTFOLIO HAS ENOUGH STOCK TO PULL FROM; ELSE RETURN TO PAGE
+    portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
+    if not portfolio_entry:
+        flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
+        return redirect(url_for("stocks"))
+    
+    elif portfolio_entry.quantity < int(quantity):
+        flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
+        return redirect(url_for("stocks"))
+    else:
+        portfolio_entry.quantity -= int(quantity)
+    try:
+         user.balance += total_price
+         db.session.commit()
+         flash(f"Successfully sold {quantity} {stock.name} stock for ${total_price:.2f}.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error completing sale: {str(e)}", "danger")
+        return redirect(url_for("stocks"))
+        
+    #end
+    db.session.commit()
+    return redirect(url_for("stocks"))
+
+
 
 #Add Portfolio Route
 @app.route('/add_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>')

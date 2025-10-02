@@ -18,8 +18,7 @@
         {% for s in stocks %}
         <tr>
           <td class="text-center">
-            <input class="form-check-input" type="radio"
-                   name="stock_id" value="{{ s.id }}" required>
+            <input class="form-check-input" type="radio" name="stock_id" value="{{ s.id }}" required>
           </td>
           <td>{{ s.name }}</td>
           <td>${{ '%.2f'|format(s.price) }}</td>
