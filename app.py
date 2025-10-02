@@ -184,6 +184,16 @@ def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
+@app.route('/buy_stock', methods=["GET", "POST"])
+def buy_stock(stock_id, quantity):
+    stock = Stock.query.get_or_404(stock_id)
+    stock_price = stock.price
+    quantity = request.form['quantity']
+    total_price = stock_price * quantity
+
+    return url_for('subtract_funds', id=1, amount=total_price)
+
+
 #Add Portfolio Route
 @app.route('/add_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>')
 def add_portfolio(quantity, user_id, stock_id):
@@ -215,6 +225,45 @@ def sell_stock(balance: float,price : int, shares: int):
 
 
 #Routes to EDIT database tables
+
+#Add to balance
+@app.route('/add_funds/<int:id>')
+def add_funds(id):
+    
+    user = User.query.get_or_404(id)
+    #amount = request.form['addamount']
+    amount = 10.15
+    new_amount = user.balance + float(amount)
+
+    try:
+        user.balance = new_amount
+        db.session.commit()
+        flash('Success!', 'success')
+        return redirect(url_for('home'))
+
+    except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('home'))
+    
+
+#Subtract from balance
+@app.route('/subtract_funds/<int:id>')
+def subtract_funds(id, amount):
+    
+    user = User.query.get_or_404(id)
+    new_amount = user.balance - float(amount)
+
+    try:
+        user.balance = new_amount
+        db.session.commit()
+        flash('Success!', 'success')
+        return redirect(url_for('home'))
+
+    except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('home'))
+
+
 #Stock
 @app.route('/edit_stock/<string:name>/<float:price>/<int:quantity>/<int:id>')
 def edit_stock(name, price, quantity, id):
