@@ -157,6 +157,16 @@ def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
+@app.route('/buy_stock', methods=["GET", "POST"])
+def buy_stock(stock_id, quantity):
+    stock = Stock.query.get_or_404(stock_id)
+    stock_price = stock.price
+    quantity = request.form['quantity']
+    total_price = stock_price * quantity
+
+    return url_for('subtract_funds', id=1, amount=total_price)
+
+
 #Add Portfolio Route
 @app.route('/add_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>')
 def add_portfolio(quantity, user_id, stock_id):
@@ -180,7 +190,7 @@ def add_portfolio(quantity, user_id, stock_id):
 
 #Routes to EDIT database tables
 
-#Add funds
+#Add to balance
 @app.route('/add_funds/<int:id>')
 def add_funds(id):
     
@@ -200,13 +210,11 @@ def add_funds(id):
             return redirect(url_for('home'))
     
 
-#Subtract funds
+#Subtract from balance
 @app.route('/subtract_funds/<int:id>')
-def subtract_funds(id, quantity, stock_price):
+def subtract_funds(id, amount):
     
     user = User.query.get_or_404(id)
-    #amount = quantity * stock_price
-    amount = 5.05
     new_amount = user.balance - float(amount)
 
     try:
