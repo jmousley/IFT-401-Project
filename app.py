@@ -176,6 +176,15 @@ def add_portfolio(quantity, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
+#Add Sell Route
+'''@app.route("/sell_stock/<float:balance>/<float:price>/<float:shares>", methods=["POST", "GET"])
+def sell_stock(balance: float,price : int, shares: int):
+    if not balance or not price or not shares:
+        flash('Fill all fields!', 'error')
+        return redirect(url_for('home'))   
+
+    sell_stock = Sell(balance=balance, price=price, shares=shares) 
+    new_balance = (balance - (price * shares))'''
 
 
 #Routes to EDIT database tables
