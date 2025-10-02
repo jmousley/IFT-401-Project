@@ -8,7 +8,7 @@
     --maxw: 820px;                               /* text line length */
     --cardw: 540px;                              /* login card width */
   }
-  /* Disable scrolling on this page */
+
   html, body { height: 100%; }
   body { overflow: hidden; }
 
@@ -33,6 +33,7 @@
   /* Subtle headline tightening */
   .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
 </style>
+<body id="home_body">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <ul>
@@ -47,13 +48,13 @@
   <div class="home-viewport">
     <div class="home-stack">
 
-      <!-- Title + sub -->
+      
       <div class="w-100">
         <h1 class="display-4 home-title mb-1">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
         <p class="lead mb-0">This site is under construction.</p>
       </div>
 
-      <!-- Login card -->
+      
       <div class="card text-white bg-secondary home-card">
         <div class="card-body">
           <h5 class="card-title mb-2">Welcome back</h5>
@@ -65,7 +66,6 @@
         </div>
       </div>
       
-      <!-- Actions -->
       <div class="d-grid gap-2 home-card">
         <a href="/contact" class="btn btn-primary">Contact Us</a>
         <a href="/support" class="btn btn-secondary">Support</a>
@@ -74,4 +74,5 @@
     </div>
   </div>
 </div>
+</body>
 {% endblock %}

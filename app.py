@@ -82,12 +82,16 @@ def login_signup():
 @app.route("/buy")
 def buy():
     stocks = Stock.query.order_by(Stock.name.asc()).all()
-    return render_template("buy.html", stocks=stocks)
+    user = User.query.get_or_404(2)
+    balance = user.balance
+    return render_template("buy.html", stocks=stocks, balance=balance)
 
 @app.route("/sell")
 def sell():
     stocks = Stock.query.all()
-    return render_template('sell.html', stocks=stocks)
+    user = User.query.get_or_404(2)
+    balance = user.balance
+    return render_template('sell.html', stocks=stocks, balance=balance)
 
 #Routes to ADD database tables
 
