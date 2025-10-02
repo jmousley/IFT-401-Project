@@ -81,8 +81,25 @@ def login_signup():
 
 @app.route("/buy")
 def buy():
-    stocks = Stock.query.all()
-    return render_template('buy.html', stocks=stocks)
+    if request.method == "POST":
+        stock_id = request.form.get("stock_id", type=int)
+        qty      = request.form.get("quantity", type=int)
+
+        if not stock_id or not qty or qty < 1:
+            flash("Pick a stock and enter a quantity.", "warning")
+            return redirect(url_for("buy"))
+
+        stock = Stock.query.get_or_404(stock_id)
+
+        stock.quantity = (stock.quantity or 0) - qty
+        db.session.commit()
+
+        flash(f"Success: bought {qty} × {stock.name}.", "success")
+        return redirect(url_for("stocks"))
+
+    # GET: load stocks from MySQL
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
+    return render_template("buy.html", stocks=stocks)
 
 @app.route("/sell")
 def sell():
