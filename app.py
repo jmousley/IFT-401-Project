@@ -184,15 +184,30 @@ def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
 
     return redirect(url_for('stocks'))
 
-@app.route('/buy_stock', methods=["GET", "POST"])
-def buy_stock(stock_id, quantity):
+@app.route('/buy_stock', methods=["POST"])
+def buy_stock():
+    stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
     quantity = request.form['quantity']
-    total_price = stock_price * quantity
+    total_price = stock_price * float(quantity)
 
-    return url_for('subtract_funds', id=1, amount=total_price)
+    user = User.query.get_or_404(2)
+    if user.balance < total_price:
+        flash("Insufficient funds", "danger")
+        return redirect(url_for("stocks"))
+    
+    try:
+        user.balance -= total_price
+        db.session.commit()
+        flash(f"Successfully bought {quantity} * {stock.name} for ${total_price:.2f}.", "success")
 
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error completing purchase: {str(e)}", "danger")
+    
+    return redirect(url_for("stocks"))
 
 #Add Portfolio Route
 @app.route('/add_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>')
@@ -232,7 +247,7 @@ def add_funds(id):
     
     user = User.query.get_or_404(id)
     #amount = request.form['addamount']
-    amount = 10.15
+    amount = 500.00
     new_amount = user.balance + float(amount)
 
     try:
@@ -247,21 +262,21 @@ def add_funds(id):
     
 
 #Subtract from balance
-@app.route('/subtract_funds/<int:id>')
-def subtract_funds(id, amount):
+# @app.route('/subtract_funds/<int:id>/<float:amount>', methods=['GET', 'POST'])
+# def subtract_funds(id, amount):
     
-    user = User.query.get_or_404(id)
-    new_amount = user.balance - float(amount)
+#     user = User.query.get_or_404(id)
+#     new_amount = user.balance - float(amount)
 
-    try:
-        user.balance = new_amount
-        db.session.commit()
-        flash('Success!', 'success')
-        return redirect(url_for('home'))
+#     try:
+#         user.balance = new_amount
+#         db.session.commit()
+#         flash('Success!', 'success')
+#         return redirect(url_for('home'))
 
-    except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
-            return redirect(url_for('home'))
+#     except Exception as e:
+#             flash(f'Error: {str(e)}', 'error')
+#             return redirect(url_for('home'))
 
 
 #Stock
