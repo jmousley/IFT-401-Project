@@ -82,14 +82,14 @@ def login_signup():
 @app.route("/buy")
 def buy():
     stocks = Stock.query.order_by(Stock.name.asc()).all()
-    user = User.query.get_or_404(2)
+    user = User.query.get_or_404(1)
     balance = user.balance
     return render_template("buy.html", stocks=stocks, balance=balance)
 
 @app.route("/sell")
 def sell():
     stocks = Stock.query.all()
-    user = User.query.get_or_404(2)
+    user = User.query.get_or_404(1)
     balance = user.balance
     return render_template('sell.html', stocks=stocks, balance=balance)
 
@@ -181,7 +181,7 @@ def buy_stock():
     total_price = stock_price * float(quantity)
 
     #this is static because i (currently) don't know how to track which user is logged in.
-    user = User.query.get_or_404(2)
+    user = User.query.get_or_404(1)
 
     if user.balance < total_price:
         flash("Insufficient funds", "danger")
@@ -220,7 +220,7 @@ def sell_stock():
     total_price = stock_price * float(quantity)
 
     #this is static because i (currently) don't know how to track which user is logged in.
-    user = User.query.get_or_404(2)
+    user = User.query.get_or_404(1)
 
     #CHECK IF PORTFOLIO HAS ENOUGH STOCK TO PULL FROM; ELSE RETURN TO PAGE
     portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
@@ -287,7 +287,7 @@ def add_funds(id):
     
     user = User.query.get_or_404(id)
     #amount = request.form['addamount']
-    amount = 500.00
+    amount = 1000.00
     new_amount = user.balance + float(amount)
 
     try:

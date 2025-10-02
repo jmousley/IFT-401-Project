@@ -20,7 +20,7 @@
                             <input class="form-check-input" type="radio" name="stock_id" value="{{ stock.id }}" style="position:relative;left:7%;" required>
                         </td>
                         <td>{{stock.name}}</td> 
-                        <td>${{stock.price}}</td> 
+                        <td>${{"%.2f"|format(stock.price)}}</td> 
                         <td>Available</td>
                     </tr> 
                     {% else %} 
