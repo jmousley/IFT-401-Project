@@ -9,8 +9,8 @@ body {
   radial-gradient(
     circle,
   #121212FF 0%, 
-  #121212DD 30%,
-  #12121200 60%), 
+  #121212CC 30%,
+  #12121200 55%), 
   url(stockimage.png);
   background-size: cover;
   background-blend-mode: overlay;
