@@ -79,6 +79,11 @@ def stocks():
 def login_signup():
     return render_template('login_signup.html')
 
+@app.route("/buy")
+def buy():
+    stocks = Stock.query.all()
+    return render_template('buy.html', stocks=stocks)
+
 #Routes to ADD database tables
 
 #Add Stock Route
@@ -356,4 +361,4 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 #testing git branch
-#AHHHHHHHHHHHHHHHHHHHHHHHHHHH
+#AHHHHHHHHHHHHHHHHHHHHHHHHHHH 

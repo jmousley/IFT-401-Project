@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<table class="table table-dark"> 
+            <thead> 
+                <tr> 
+                    <th>Name</th> 
+                    <th>Price per stock</th> 
+                </tr> 
+            </thead> 
+            <tbody>
+                {% for stock in stocks %}
+                <tr> 
+                    <td>{{ stock.name }}</td> 
+                    <td>${{ stock.price }}</td> 
+                    <td>{{ stock.quantity }}</td> 
+                </tr> 
+                {% endfor %} 
+            </tbody> 
+        </table>
+{% endblock %}
