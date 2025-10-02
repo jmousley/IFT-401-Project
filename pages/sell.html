@@ -5,8 +5,8 @@
   <table class="table table-dark"> 
             <thead> 
                 <tr> 
-                    <th>Name</th> 
-                    <th>balance</th>
+                    <th>Stock name</th> 
+                    <th>User balance</th>
                     <th>Stock price</th> 
                     <th>Shares</th> 
                     <th>New Balance</th>
@@ -15,19 +15,40 @@
             <tbody>
                 {% for stock in stocks %}
                 <tr> 
-                    <td>{{ sell.name }}</td> 
-                    <td>{{sell.price }}</td> 
-                    <td>{{sell.quantity }}</td> 
-                    <td>{{sell.shares }}</td>
-                    <td>{{sell.new_balance }}</td>
+                    <td>{{sell.name}}</td>
+                    <td>{{sell.balance}}</td> 
+                    <td>{{sell.price}}</td> 
+                    <td>{{sell.shares}}</td>
+                    <td>{{sell.new_balance}}</td>
                 </tr> 
                 {% else %} 
                 <tr> 
                     <td colspan="6">The Sell List is empty.</td> 
-                </tr> 
+                </tr>
+
                 {% endfor %} 
             </tbody> 
         </table> 
+    <form action="#" method="POST">
+        <div class="mb-3">
+            <label for="Stock Name" class="form-label">Stock name:</label>
+            <input type="text" name="Stock Name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="Balance" class="form-label">Balance:</label>
+            <input type="Float" name="Balance" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="Price" class="form-label">Stock Price:</label>
+            <input type="Float" name="Stock Price" class="form-control" required>
+        </div>
+            <div class="mb-3">
+            <label for="Shares" class="form-label">Shares:</label>
+            <input type="int" name="Shares" class="form-control" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
         </div>
     </body>
 {% endblock %}
