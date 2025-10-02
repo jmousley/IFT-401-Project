@@ -1,7 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
+<style>
+  :root{
+    --nav-h: 56px;                               /* approximate navbar height */
+    --gap: clamp(18px, 3.5vh, 36px);             /* global vertical spacing for this page */
+    --maxw: 820px;                               /* text line length */
+    --cardw: 540px;                              /* login card width */
+  }
 
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+
+  /* Fill the viewport minus the nav and center the stack */
+  .home-viewport{
+    height: calc(100svh - var(--nav-h));
+    display: grid;
+    place-items: center;
+    padding: 0 16px; /* small side breathing room */
+  }
+  .home-stack{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--gap);
+    width: min(var(--maxw), 100%);
+  }
+  .home-card{
+    width: min(var(--cardw), 100%);
+  }
+  /* Subtle headline tightening */
+  .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
+</style>
+<body id="home_body">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <ul>
@@ -12,28 +44,35 @@
   {% endif %}
 {% endwith %}
 
+<div class="container">
+  <div class="home-viewport">
+    <div class="home-stack">
 
-<div class="row">
-  <div class="col-md-12">
-    <h1 class="display-4">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
-    <p class="lead">This site is under construction.</p>
-  </div>
-</div>
-<div class="col-md-12">
-  <div class="col-md-4">
-    <div class="card text-white bg-secondary"><div class="card-body">
-      <h5 class="card-title">Welcome back</h5>
-      <p class="card-text">Please log in to gain access to our services.</p>
-      <a href="#" class="btn btn-primary">Login</a>
-      <a href="#" class="btn btn-primary">Sign Up</a>
-    </div></div>
-  </div>
-  <br>
-  <div class="col-md-4">
-    <div class="d-grid gap-2">
-      <button class="btn btn-primary">Contact Us</button>
-      <button class="btn btn-secondary">Support</button>
+      
+      <div class="w-100">
+        <h1 class="display-4 home-title mb-1">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
+        <p class="lead mb-0">This site is under construction.</p>
+      </div>
+
+      
+      <div class="card text-white bg-secondary home-card">
+        <div class="card-body">
+          <h5 class="card-title mb-2">Welcome back</h5>
+          <p class="card-text mb-3">Please log in to gain access to our services.</p>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="#" class="btn btn-primary">Login</a>
+            <a href="#" class="btn btn-primary">Sign Up</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-grid gap-2 home-card">
+        <a href="/contact" class="btn btn-primary">Contact Us</a>
+        <a href="/support" class="btn btn-secondary">Support</a>
+      </div>
+
     </div>
   </div>
 </div>
+</body>
 {% endblock %}

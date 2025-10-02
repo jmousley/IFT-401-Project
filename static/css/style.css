@@ -2,3 +2,16 @@ body {
   background-color: #121212;
   color: #ffffff;
 }
+
+#home_body {
+  background: #121212;
+  background-image: 
+  radial-gradient(
+    circle,
+  #121212FF 0%, 
+  #121212DD 30%,
+  #12121200 60%), 
+  url(stockimage.png);
+  background-size: cover;
+  background-blend-mode: overlay;
+}
