@@ -179,6 +179,47 @@ def add_portfolio(quantity, user_id, stock_id):
 
 
 #Routes to EDIT database tables
+
+#Add funds
+@app.route('/add_funds/<int:id>')
+def add_funds(id):
+    
+    user = User.query.get_or_404(id)
+    #amount = request.form['addamount']
+    amount = 10.15
+    new_amount = user.balance + float(amount)
+
+    try:
+        user.balance = new_amount
+        db.session.commit()
+        flash('Success!', 'success')
+        return redirect(url_for('home'))
+
+    except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('home'))
+    
+
+#Subtract funds
+@app.route('/subtract_funds/<int:id>')
+def subtract_funds(id, quantity, stock_price):
+    
+    user = User.query.get_or_404(id)
+    #amount = quantity * stock_price
+    amount = 5.05
+    new_amount = user.balance - float(amount)
+
+    try:
+        user.balance = new_amount
+        db.session.commit()
+        flash('Success!', 'success')
+        return redirect(url_for('home'))
+
+    except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('home'))
+
+
 #Stock
 @app.route('/edit_stock/<string:name>/<float:price>/<int:quantity>/<int:id>')
 def edit_stock(name, price, quantity, id):
