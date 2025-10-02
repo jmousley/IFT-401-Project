@@ -81,23 +81,6 @@ def login_signup():
 
 @app.route("/buy")
 def buy():
-    if request.method == "POST":
-        stock_id = request.form.get("stock_id", type=int)
-        qty      = request.form.get("quantity", type=int)
-
-        if not stock_id or not qty or qty < 1:
-            flash("Pick a stock and enter a quantity.", "warning")
-            return redirect(url_for("buy"))
-
-        stock = Stock.query.get_or_404(stock_id)
-
-        stock.quantity = (stock.quantity or 0) - qty
-        db.session.commit()
-
-        flash(f"Success: bought {qty} × {stock.name}.", "success")
-        return redirect(url_for("stocks"))
-
-    # GET: load stocks from MySQL
     stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template("buy.html", stocks=stocks)
 
@@ -202,11 +185,22 @@ def buy_stock():
         db.session.commit()
         flash(f"Successfully bought {quantity} * {stock.name} for ${total_price:.2f}.", "success")
 
-
     except Exception as e:
         db.session.rollback()
         flash(f"Error completing purchase: {str(e)}", "danger")
+        return redirect(url_for("stocks"))
     
+    
+    #ADD TO PORTFOLIO, IF X USER HAS X STOCK ALREADY, ADD TO IT, OTHERWISE MAKE NEW ENTRY
+    portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
+    if portfolio_entry:
+        portfolio_entry.quantity += int(quantity)
+    else:
+        portfolio_entry = Portfolio(user_id=user.id, stock_id=stock.id, quantity=quantity)
+        db.session.add(portfolio_entry)
+        
+    db.session.commit()
+    #end
     return redirect(url_for("stocks"))
 
 #Add Portfolio Route
