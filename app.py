@@ -84,6 +84,11 @@ def buy():
     stocks = Stock.query.all()
     return render_template('buy.html', stocks=stocks)
 
+@app.route("/sell")
+def sell():
+    stocks = Stock.query.all()
+    return render_template('sell.html', stocks=stocks)
+
 #Routes to ADD database tables
 
 #Add Stock Route
