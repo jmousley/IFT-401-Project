@@ -482,6 +482,26 @@ def delete_portfolio(id):
 def test_page():
     return render_template('test.html')
 
+@app.route('/signup', methods=['GET'])
+def register():
+    return render_template('signup.html')
+
+
+#Registration Route
+#@app.route('/register', methods=["GET", "POST"])
+#def register():
+#    if request.method == "POST":
+#        user = Users(
+#            username=request.form.get("username"),
+#            password=request.form.get("password"),  # Note: In production, hash passwords!
+#            role="user"  # Default role is "user"
+#        )
+#        db.session.add(user)
+#        db.session.commit()
+#        return redirect(url_for("login"))
+#    return render_template("signup.html")
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
