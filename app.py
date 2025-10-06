@@ -24,7 +24,7 @@ class Stock(db.Model):
     orders = db.relationship('Order', backref='stock')
     portfolio_entries = db.relationship('Portfolio', backref='stock')
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
@@ -34,8 +34,6 @@ class User(db.Model):
     orders = db.relationship('Order', backref='user')
     portfolio_entries = db.relationship('Portfolio', backref='user')
     role = db.Column(db.String(100), nullable=False)
-    is_active = db.Column(db.Boolean, default=False)
-    is_authenticated = db.Column(db.Boolean, default=False)
 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -66,7 +64,7 @@ def load_user(user_id):
 
 # Create tables
 with app.app_context():
-    db.drop_all()
+    #db.drop_all()
     db.create_all()
 
 #Routes
@@ -98,9 +96,7 @@ def buy():
 @app.route("/sell")
 def sell():
     stocks = Stock.query.all()
-    user = User.query.get_or_404(1)
-    balance = user.balance
-    return render_template('sell.html', stocks=stocks, balance=balance)
+    return render_template('sell.html', stocks=stocks)
 
 #Routes to ADD database tables
 
@@ -508,6 +504,7 @@ def register():
         db.session.commit()
         return redirect(url_for("login"))
     return render_template("signup.html")
+
 #Log-in Route
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -520,6 +517,13 @@ def login():
         else:
             flash(f"Error signing in: login invalid", "error")
     return render_template("login_signup.html")
+
+#Logout Route
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
 
 
 
