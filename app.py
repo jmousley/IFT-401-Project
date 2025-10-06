@@ -11,6 +11,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 
 db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 #Tables
 
@@ -31,6 +33,9 @@ class User(db.Model):
     balance = db.Column(db.Float, nullable=False)
     orders = db.relationship('Order', backref='user')
     portfolio_entries = db.relationship('Portfolio', backref='user')
+    role = db.Column(db.String(100), nullable=False)
+    is_active = db.Column(db.Boolean, default=False)
+    is_authenticated = db.Column(db.Boolean, default=False)
 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,11 +58,15 @@ class Portfolio(db.Model):
     quantity = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     stock_id = db.Column(db.Integer, db.ForeignKey('stock.id'), nullable=False)
-
+   
+# Flask-Login setup
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Create tables
 with app.app_context():
-    #db.drop_all()
+    db.drop_all()
     db.create_all()
 
 #Routes
@@ -482,24 +491,35 @@ def delete_portfolio(id):
 def test_page():
     return render_template('test.html')
 
-@app.route('/signup', methods=['GET'])
-def register():
-    return render_template('signup.html')
-
 
 #Registration Route
-#@app.route('/register', methods=["GET", "POST"])
-#def register():
-#    if request.method == "POST":
-#        user = Users(
-#            username=request.form.get("username"),
-#            password=request.form.get("password"),  # Note: In production, hash passwords!
-#            role="user"  # Default role is "user"
-#        )
-#        db.session.add(user)
-#        db.session.commit()
-#        return redirect(url_for("login"))
-#    return render_template("signup.html")
+@app.route('/signup', methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        user = User(
+            email=request.form.get("email"),
+            password=request.form.get("password"),
+            fname=request.form.get("fname"),
+            lname=request.form.get("lname"),
+            balance=0.00,
+            role="user"
+        )
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for("login"))
+    return render_template("signup.html")
+#Log-in Route
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = User.query.filter_by(email=request.form.get("email")).first()
+        if user and user.password == request.form.get("password"):
+            login_user(user)
+            return redirect(url_for("home"))
+        
+        else:
+            flash(f"Error signing in: login invalid", "error")
+    return render_template("login_signup.html")
 
 
 
