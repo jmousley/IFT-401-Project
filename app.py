@@ -79,7 +79,7 @@ def about():
 
 @app.route("/stocks")
 def stocks():
-    stocks = Stock.query.all()
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template('stocks.html', stocks=stocks)
 
 @app.route("/login_page")
@@ -89,13 +89,11 @@ def login_page():
 @app.route("/buy")
 def buy():
     stocks = Stock.query.order_by(Stock.name.asc()).all()
-    user = User.query.get_or_404(1)
-    balance = user.balance
-    return render_template("buy.html", stocks=stocks, balance=balance)
+    return render_template("buy.html", stocks=stocks)
 
 @app.route("/sell")
 def sell():
-    stocks = Stock.query.all()
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template('sell.html', stocks=stocks)
 
 #Routes to ADD database tables
