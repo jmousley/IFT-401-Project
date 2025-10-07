@@ -82,9 +82,9 @@ def stocks():
     stocks = Stock.query.all()
     return render_template('stocks.html', stocks=stocks)
 
-@app.route("/login_signup")
-def login_signup():
-    return render_template('login_signup.html')
+@app.route("/login_page")
+def login_page():
+    return render_template('login_page.html')
 
 @app.route("/buy")
 def buy():
@@ -516,14 +516,14 @@ def login():
         
         else:
             flash(f"Error signing in: login invalid", "error")
-    return render_template("login_signup.html")
+    return render_template("login_page.html")
 
 #Logout Route
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("login"))
+    return redirect(url_for("home"))
 
 
 

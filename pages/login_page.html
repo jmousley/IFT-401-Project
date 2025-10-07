@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <div class="d-flex justify-content-center align-items-center flex-column" style="min-height: calc(100vh - 120px); padding-bottom: 40px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="container bg-dark border border-light rounded-5 p-5" style="max-width: 700px;">
+            <title>Login</title>
+            <h1 class="text-center">Log in</h1>
+            <form action="/login" method="POST">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="mb-3 mt-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="text" name="email" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password:</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row justify-content-center mt-3">
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </form>
+            <div class="row justify-content-center mt-5">
+                <div class="col-auto">
+                    <a href="{{ url_for('register') }}" class="fs-5">Don't have an account?</a>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-3">
+                <div class="col-auto">
+                    <a href="{{ url_for('home') }}" class="fs-5">Forgot your password?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+{% endblock %}
