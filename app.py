@@ -80,7 +80,12 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    if not current_user.is_authenticated:
+        return render_template("home.html")
+    elif current_user.role == "admin":
+        return render_template("dash_admin.html")
+    else:
+        return render_template("dash_user.html")
 
 @app.route("/about")
 def about():
