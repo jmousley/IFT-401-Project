@@ -56,6 +56,15 @@ class Portfolio(db.Model):
     quantity = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     stock_id = db.Column(db.Integer, db.ForeignKey('stock.id'), nullable=False)
+
+class TradingHours(db.Model):
+    day_of_week = db.Column(db.String(10), primary_key=True)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+
+class Holidays(db.Model):
+    name = db.Column(db.String(100), primary_key=True)
+    holiday_date = db.Column(db.Date, nullable=False)
    
 # Flask-Login setup
 @login_manager.user_loader
