@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Edit Market Hours{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-column justify-content-center align-items-center" style="min-height: calc(100vh - 120px); padding-bottom: 40px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    <div class="container bg-dark border border-light rounded-5 p-5" style="max-width: 700px;">
+        <h1 class="text-center">Edit Market Hours</h1>
+        <form action="/edit_market_hours" method="POST">
+
+            <div class="row justify-content-center">
+                <div class="col-md-6 mt-4">
+                    <div class="mb-3"> 
+                        <label class="form-label">Day of the Week:</label>
+                        <select class="form-select" name="day_of_week" required>
+                            <option value="Sunday">Sunday</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Start Time:</label>
+                        <input type="time" name="start_time" class="form-control" placeholder="HH:MM" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">End Time:</label>
+                        <input type="time" name="end_time" class="form-control" placeholder="HH:MM" required>
+                    </div>
+                </div>
+            </div>
+
+             <div class="row justify-content-center mt-3">
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+             </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

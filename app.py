@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import random
 from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import time
 
 
 app = Flask(__name__, template_folder="pages")
@@ -126,6 +127,13 @@ def sell():
     stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template('sell.html', stocks=stocks)
 
+@app.route("/trading_hours")
+def trading_hours():
+    if current_user.role == "admin":
+        return render_template("trading_hours.html")
+    else:
+        return redirect(url_for('home'))
+
 #Routes to ADD database tables
 
 #Add Stock Route
@@ -212,9 +220,7 @@ def buy_stock():
     stock_price = stock.price
     quantity = request.form['quantity']
     total_price = stock_price * float(quantity)
-
-    #this is static because i (currently) don't know how to track which user is logged in.
-    user = User.query.get_or_404(1)
+    user = current_user
 
     if user.balance < total_price:
         flash("Insufficient funds", "danger")
@@ -251,9 +257,7 @@ def sell_stock():
     stock_price = stock.price
     quantity = request.form['quantity']
     total_price = stock_price * float(quantity)
-
-    #this is static because i (currently) don't know how to track which user is logged in.
-    user = User.query.get_or_404(1)
+    user = current_user
 
     #CHECK IF PORTFOLIO HAS ENOUGH STOCK TO PULL FROM; ELSE RETURN TO PAGE
     portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
@@ -315,7 +319,7 @@ def sell_stock(balance: float,price : int, shares: int):
 #Routes to EDIT database tables
 
 #Add to balance
-@app.route('/add_funds/<int:id>')
+@app.route('/add_funds/<int:id>', methods=["get", "post"])
 def add_funds(id):
     
     user = User.query.get_or_404(id)
@@ -637,7 +641,27 @@ def edit_stock(id):
     # GET -> show form pre-filled
     return render_template('edit_stock_page.html', stock=stock)
 
+#Initialize Market Hours
+def init_market_hours():
+    days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    for day in days_of_week:
+        trading_hours = TradingHours(day_of_week=day, start_time=time(8, 0), end_time=time(17, 0))
+        db.session.add(trading_hours)
+    db.session.commit()
 
+#run this to populate the db with the days of the week quickly.
+#with app.app_context():
+#    init_market_hours()
+
+#Edit Market Hours
+@app.route("/edit_market_hours", methods=["POST"])
+def edit_market_hours():
+    day = TradingHours.query.get_or_404(request.form["day_of_week"])
+    day.start_time = request.form["start_time"]
+    day.end_time = request.form["end_time"]
+    db.session.commit()
+    flash(f"Updated!", "success")
+    return render_template("trading_hours.html")
 
 if __name__ == '__main__':
     app.run(debug=True)
