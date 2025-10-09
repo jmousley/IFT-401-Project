@@ -450,7 +450,7 @@ def delete_stock(id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting stock: {str(e)}', 'error')
-    return redirect(url_for('stocks'))
+    return redirect(url_for('stock_admin'))
 
 
 #User
