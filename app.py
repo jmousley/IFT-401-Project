@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+import random
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 app = Flask(__name__, template_folder="pages")
-
 
 #SQL Config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/project_db'
@@ -70,6 +72,20 @@ class Holidays(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# Randomize stock prices
+def stock_randomize():
+    with app.app_context():
+        stocks = Stock.query.all()
+        for stock in stocks:
+            new_price = round(random.uniform(20,60), 2)
+            stock.price = new_price
+        db.session.commit()
+    print('randomized!')
+
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.add_job(stock_randomize, 'interval', seconds=20)
+scheduler.start()
 
 # Create tables
 with app.app_context():
