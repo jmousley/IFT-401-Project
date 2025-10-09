@@ -337,26 +337,26 @@ def add_funds(id):
 
 
 #Stock
-@app.route('/edit_stock/<string:name>/<float:price>/<int:quantity>/<int:id>')
-def edit_stock(name, price, quantity, id):
-    if not name or not price or not quantity:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-    
-    stock = Stock.query.get_or_404(id)
-    stock.name = name
-    stock.price = price
-    stock.quantity = quantity
-
-
-    try:
-        db.session.commit()
-        flash(f'Stock {name} updated!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating stock: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
+#@app.route('/edit_stock_page/<string:name>/<float:price>/<int:quantity>/<int:id>')
+#def edit_stock(name, price, quantity, id):
+#    if not name or not price or not quantity:
+#        flash('Fill all fields!', 'error')
+#        return redirect(url_for('home'))
+#    
+#    stock = Stock.query.get_or_404(id)
+#    stock.name = name
+#    stock.price = price
+#    stock.quantity = quantity
+#
+#
+#    try:
+#        db.session.commit()
+#        flash(f'Stock {name} updated!', 'success')
+#    except Exception as e:
+#        db.session.rollback()
+#        flash(f'Error updating stock: {str(e)}', 'error')#
+#
+#    return redirect(url_for('stocks'))
 
 #User
 @app.route('/edit_user/<string:email>/<string:password>/<string:fname>/<string:lname>/<int:id>')
@@ -536,6 +536,90 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("home"))
+
+#stock_admin route
+@app.route('/stock_admin')
+@login_required
+def stock_admin():
+    # optional admin-only check
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
+    return render_template('stock_admin.html', stocks=stocks)
+
+#Add Stock Route
+@app.route('/add_stock_page', methods=['GET', 'POST'])
+@login_required
+def add_stock_page():
+    # admin-only access
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        try:
+            price = float(request.form.get("price", 0))
+        except (TypeError, ValueError):
+            price = None
+        try:
+            quantity = int(request.form.get("quantity", 0))
+        except (TypeError, ValueError):
+            quantity = None
+
+        if not name or price is None or quantity is None:
+            flash("Please fill all fields correctly.", "error")
+            return redirect(url_for("add_stock_page"))
+
+        new_stock = Stock(name=name, price=price, quantity=quantity)
+        db.session.add(new_stock)
+        db.session.commit()
+        flash(f"Stock '{name}' added.", "success")
+        return redirect(url_for("stock_admin"))
+
+    return render_template("add_stock_page.html")
+
+#Edit Stock Route
+@app.route('/edit_stock_page/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_stock(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+
+    stock = Stock.query.get_or_404(id)
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        try:
+            price = float(request.form.get('price', 0))
+        except (TypeError, ValueError):
+            price = None
+        try:
+            quantity = int(request.form.get('quantity', 0))
+        except (TypeError, ValueError):
+            quantity = None
+
+        if not name or price is None or quantity is None:
+            flash("Please fill all fields correctly.", "error")
+            return redirect(url_for('edit_stock_page', id=id))
+
+        stock.name = name
+        stock.price = price
+        stock.quantity = quantity
+
+        try:
+            db.session.commit()
+            flash(f"Stock '{name}' updated.", "success")
+            return redirect(url_for('stock_admin'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating stock: {str(e)}", "error")
+            return redirect(url_for('edit_stock_page', id=id))
+
+    # GET -> show form pre-filled
+    return render_template('edit_stock_page.html', stock=stock)
 
 
 

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Add Stock{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1>Add Stock</h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('add_stock_page') }}">
+    <div class="mb-3">
+      <label class="form-label">Name</label>
+      <input class="form-control" name="name" required />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Price</label>
+      <input class="form-control" name="price" type="number" step="0.01" required />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Quantity</label>
+      <input class="form-control" name="quantity" type="number" required />
+    </div>
+    <button class="btn btn-success" type="submit">Create stock</button>
+    <a class="btn btn-secondary" href="{{ url_for('stock_admin') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}
