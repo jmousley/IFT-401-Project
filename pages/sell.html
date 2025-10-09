@@ -2,6 +2,7 @@
 {% block title %}Home{% endblock %}
 {% block content %}
 <title>Sell Stock</title>
+<div class="container mt-5">
 <h1>Sell</h1>
     <form method="POST" action="/sell_stock" >
         <table class="table table-dark"> 
@@ -32,16 +33,19 @@
                 </tbody> 
             </table> 
              <div class="row g-2 align-items-end">
-        <div class="col-auto">
-            <label for="Shares" class="form-label"># of shares:</label>
-            <input type="number" name="quantity" class="form-control" min="1" value="1" required>
-        </div> 
-        <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Sell</button>
+                <div class="col-auto">
+                    <label for="Shares" class="form-label"># of shares:</label>
+                    <input type="number" name="quantity" class="form-control" min="1" value="1" required>
+                </div> 
+                <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Sell</button>
+                </div>
+                {% if current_user.is_authenticated %}
+                    <p>User {{ current_user.fname }}'s balance: ${{ "%.2f"|format(current_user.balance) }}</p>
+                {% endif %}
+            </div>
+
+            </form>
         </div>
-        <p>Balance: ${{ "%.2f"|format(balance) }}</p>
-        </div>
-    </form>
-        </div>
-    </body>
+
 {% endblock %}

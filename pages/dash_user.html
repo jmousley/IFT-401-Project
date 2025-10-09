@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}User Dashboard{% endblock %}
+{% block content %}
+
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+<div class="container-fluid p-5 pt-4">
+    
+  <h1 class="pb-2">User Dashboard</h1>
+  <h2 class="pb-3">Welcome, {{ current_user.fname }}</h2>
+
+  <div class="row">
+
+    <!-- Left side -->
+    <div class="col-md-5">
+      <div class="row">
+        <div class="col-md-4 pb-3">
+          <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded">
+            <h4 class="mb-1">Balance:</h4>
+            <h3 class="mb-3">${{ "%.2f"|format(current_user.balance) }}</h3>
+            <form action="{{ url_for('add_funds', id=current_user.id) }}" method="post">
+              <button type="submit" class="btn btn-primary">Add funds</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-6 pb-3">
+          <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded">
+            <h4 class="mb-1">Portfolio Value:</h4>
+            <h3 class="mb-3">$XXXXX.XX</h3>
+            <button type="submit" class="btn btn-primary">Add funds</button>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 pb-3 d-flex">
+          <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded flex-fill">
+            <h4 class="mb-1">Example buttons</h4>
+          </div>
+        </div>
+        <div class="col-md-6 pb-3 d-flex">
+          <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded flex-fill">
+            <h4 class="mb-1">Example buttons</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side -->
+    <div class="col-md-7">
+      <div class="mb-3 mt-3 bg-secondary p-3 rounded text-center" style="height: 500px;">
+        <h4 class="mb-1">Portfolio goes here</h4>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

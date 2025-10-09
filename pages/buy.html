@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}Buy{% endblock %}
 {% block content %}
 <div class="container mt-5">
   <h1>Buy</h1>
@@ -36,7 +36,9 @@
       <div class="col-auto">
         <button type="submit" class="btn btn-primary mt-4">Buy</button>
       </div>
-        <p>Balance: ${{ "%.2f"|format(balance) }}</p>
+        {% if current_user.is_authenticated %}
+            <p>User {{ current_user.fname }}'s balance: ${{ "%.2f"|format(current_user.balance) }}</p>
+        {% endif %}
       </div>
     </div>
   </form>

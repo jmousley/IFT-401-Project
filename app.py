@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+import random
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import time
+
 
 app = Flask(__name__, template_folder="pages")
-
 
 #SQL Config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/project_db'
@@ -11,6 +14,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 
 db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 #Tables
 
@@ -22,7 +27,7 @@ class Stock(db.Model):
     orders = db.relationship('Order', backref='stock')
     portfolio_entries = db.relationship('Portfolio', backref='stock')
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
@@ -31,13 +36,7 @@ class User(db.Model):
     balance = db.Column(db.Float, nullable=False)
     orders = db.relationship('Order', backref='user')
     portfolio_entries = db.relationship('Portfolio', backref='user')
-
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    fname = db.Column(db.String(100), nullable=False)
-    lname = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(100), nullable=False)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,6 +53,33 @@ class Portfolio(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     stock_id = db.Column(db.Integer, db.ForeignKey('stock.id'), nullable=False)
 
+class TradingHours(db.Model):
+    day_of_week = db.Column(db.String(10), primary_key=True)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+
+class Holidays(db.Model):
+    name = db.Column(db.String(100), primary_key=True)
+    holiday_date = db.Column(db.Date, nullable=False)
+   
+# Flask-Login setup
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Randomize stock prices
+def stock_randomize():
+    with app.app_context():
+        stocks = Stock.query.all()
+        for stock in stocks:
+            new_price = round(random.uniform(20,60), 2)
+            stock.price = new_price
+        db.session.commit()
+    print('randomized!')
+
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.add_job(stock_randomize, 'interval', seconds=20)
+scheduler.start()
 
 # Create tables
 with app.app_context():
@@ -64,7 +90,12 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    if not current_user.is_authenticated:
+        return render_template("home.html")
+    elif current_user.role == "admin":
+        return render_template("dash_admin.html")
+    else:
+        return render_template("dash_user.html")
 
 @app.route("/about")
 def about():
@@ -72,26 +103,29 @@ def about():
 
 @app.route("/stocks")
 def stocks():
-    stocks = Stock.query.all()
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template('stocks.html', stocks=stocks)
 
-@app.route("/login_signup")
-def login_signup():
-    return render_template('login_signup.html')
+@app.route("/login_page")
+def login_page():
+    return render_template('login_page.html')
 
 @app.route("/buy")
 def buy():
     stocks = Stock.query.order_by(Stock.name.asc()).all()
-    user = User.query.get_or_404(1)
-    balance = user.balance
-    return render_template("buy.html", stocks=stocks, balance=balance)
+    return render_template("buy.html", stocks=stocks)
 
 @app.route("/sell")
 def sell():
-    stocks = Stock.query.all()
-    user = User.query.get_or_404(1)
-    balance = user.balance
-    return render_template('sell.html', stocks=stocks, balance=balance)
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
+    return render_template('sell.html', stocks=stocks)
+
+@app.route("/trading_hours")
+def trading_hours():
+    if current_user.role == "admin":
+        return render_template("trading_hours.html")
+    else:
+        return redirect(url_for('home'))
 
 #Routes to ADD database tables
 
@@ -179,9 +213,7 @@ def buy_stock():
     stock_price = stock.price
     quantity = request.form['quantity']
     total_price = stock_price * float(quantity)
-
-    #this is static because i (currently) don't know how to track which user is logged in.
-    user = User.query.get_or_404(1)
+    user = current_user
 
     if user.balance < total_price:
         flash("Insufficient funds", "danger")
@@ -218,9 +250,7 @@ def sell_stock():
     stock_price = stock.price
     quantity = request.form['quantity']
     total_price = stock_price * float(quantity)
-
-    #this is static because i (currently) don't know how to track which user is logged in.
-    user = User.query.get_or_404(1)
+    user = current_user
 
     #CHECK IF PORTFOLIO HAS ENOUGH STOCK TO PULL FROM; ELSE RETURN TO PAGE
     portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
@@ -282,7 +312,7 @@ def sell_stock(balance: float,price : int, shares: int):
 #Routes to EDIT database tables
 
 #Add to balance
-@app.route('/add_funds/<int:id>')
+@app.route('/add_funds/<int:id>', methods=["get", "post"])
 def add_funds(id):
     
     user = User.query.get_or_404(id)
@@ -320,26 +350,26 @@ def add_funds(id):
 
 
 #Stock
-@app.route('/edit_stock/<string:name>/<float:price>/<int:quantity>/<int:id>')
-def edit_stock(name, price, quantity, id):
-    if not name or not price or not quantity:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-    
-    stock = Stock.query.get_or_404(id)
-    stock.name = name
-    stock.price = price
-    stock.quantity = quantity
-
-
-    try:
-        db.session.commit()
-        flash(f'Stock {name} updated!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating stock: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
+#@app.route('/edit_stock_page/<string:name>/<float:price>/<int:quantity>/<int:id>')
+#def edit_stock(name, price, quantity, id):
+#    if not name or not price or not quantity:
+#        flash('Fill all fields!', 'error')
+#        return redirect(url_for('home'))
+#    
+#    stock = Stock.query.get_or_404(id)
+#    stock.name = name
+#    stock.price = price
+#    stock.quantity = quantity
+#
+#
+#    try:
+#        db.session.commit()
+#        flash(f'Stock {name} updated!', 'success')
+#    except Exception as e:
+#        db.session.rollback()
+#        flash(f'Error updating stock: {str(e)}', 'error')#
+#
+#    return redirect(url_for('stocks'))
 
 #User
 @app.route('/edit_user/<string:email>/<string:password>/<string:fname>/<string:lname>/<int:id>')
@@ -420,7 +450,7 @@ def delete_stock(id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting stock: {str(e)}', 'error')
-    return redirect(url_for('stocks'))
+    return redirect(url_for('stock_admin'))
 
 
 #User
@@ -482,6 +512,149 @@ def delete_portfolio(id):
 def test_page():
     return render_template('test.html')
 
+
+#Registration Route
+@app.route('/signup', methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        user = User(
+            email=request.form.get("email"),
+            password=request.form.get("password"),
+            fname=request.form.get("fname"),
+            lname=request.form.get("lname"),
+            balance=0.00,
+            role="user"
+        )
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for("login"))
+    return render_template("signup.html")
+
+#Log-in Route
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = User.query.filter_by(email=request.form.get("email")).first()
+        if user and user.password == request.form.get("password"):
+            login_user(user)
+            return redirect(url_for("home"))
+        
+        else:
+            flash(f"Error signing in: login invalid", "error")
+    return render_template("login_page.html")
+
+#Logout Route
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
+#stock_admin route
+@app.route('/stock_admin')
+@login_required
+def stock_admin():
+    # optional admin-only check
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+    stocks = Stock.query.order_by(Stock.name.asc()).all()
+    return render_template('stock_admin.html', stocks=stocks)
+
+#Add Stock Route
+@app.route('/add_stock_page', methods=['GET', 'POST'])
+@login_required
+def add_stock_page():
+    # admin-only access
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        try:
+            price = float(request.form.get("price", 0))
+        except (TypeError, ValueError):
+            price = None
+        try:
+            quantity = int(request.form.get("quantity", 0))
+        except (TypeError, ValueError):
+            quantity = None
+
+        if not name or price is None or quantity is None:
+            flash("Please fill all fields correctly.", "error")
+            return redirect(url_for("add_stock_page"))
+
+        new_stock = Stock(name=name, price=price, quantity=quantity)
+        db.session.add(new_stock)
+        db.session.commit()
+        flash(f"Stock '{name}' added.", "success")
+        return redirect(url_for("stock_admin"))
+
+    return render_template("add_stock_page.html")
+
+#Edit Stock Route
+@app.route('/edit_stock_page/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_stock(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+
+    stock = Stock.query.get_or_404(id)
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        try:
+            price = float(request.form.get('price', 0))
+        except (TypeError, ValueError):
+            price = None
+        try:
+            quantity = int(request.form.get('quantity', 0))
+        except (TypeError, ValueError):
+            quantity = None
+
+        if not name or price is None or quantity is None:
+            flash("Please fill all fields correctly.", "error")
+            return redirect(url_for('edit_stock_page', id=id))
+
+        stock.name = name
+        stock.price = price
+        stock.quantity = quantity
+
+        try:
+            db.session.commit()
+            flash(f"Stock '{name}' updated.", "success")
+            return redirect(url_for('stock_admin'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating stock: {str(e)}", "error")
+            return redirect(url_for('edit_stock_page', id=id))
+
+    # GET -> show form pre-filled
+    return render_template('edit_stock_page.html', stock=stock)
+
+#Initialize Market Hours
+def init_market_hours():
+    days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    for day in days_of_week:
+        trading_hours = TradingHours(day_of_week=day, start_time=time(8, 0), end_time=time(17, 0))
+        db.session.add(trading_hours)
+    db.session.commit()
+
+#run this to populate the db with the days of the week quickly.
+#with app.app_context():
+#    init_market_hours()
+
+#Edit Market Hours
+@app.route("/edit_market_hours", methods=["POST"])
+def edit_market_hours():
+    day = TradingHours.query.get_or_404(request.form["day_of_week"])
+    day.start_time = request.form["start_time"]
+    day.end_time = request.form["end_time"]
+    db.session.commit()
+    flash(f"Updated!", "success")
+    return render_template("trading_hours.html")
 
 if __name__ == '__main__':
     app.run(debug=True)
