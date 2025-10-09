@@ -38,13 +38,6 @@ class User(UserMixin, db.Model):
     portfolio_entries = db.relationship('Portfolio', backref='user')
     role = db.Column(db.String(100), nullable=False)
 
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    fname = db.Column(db.String(100), nullable=False)
-    lname = db.Column(db.String(100), nullable=False)
-
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
