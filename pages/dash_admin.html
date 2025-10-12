@@ -12,7 +12,11 @@
     {% endwith %}
 <div class="container-fluid p-5 pt-4">
   <h1 class="pb-2">Admin Dashboard</h1>
-  <h2 class="pb-3">Welcome, {{ current_user.fname }}</h2>
+  <div class="d-flex justify-content-between align-items-center">
+    <h3>Welcome, {{ current_user.fname }}</h3>
+    <h3 style="margin-left: 55%;">{{"Market Status - " ~ status}}</h3>
+    <h3>{{ current_time }}</h3>
+  </div>
 
   <div class="row">
 

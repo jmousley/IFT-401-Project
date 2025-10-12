@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import random
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import time
+from datetime import time, datetime
 
 
 app = Flask(__name__, template_folder="pages")
@@ -61,7 +61,7 @@ class TradingHours(db.Model):
 class Holidays(db.Model):
     name = db.Column(db.String(100), primary_key=True)
     holiday_date = db.Column(db.Date, nullable=False)
-   
+
 # Flask-Login setup
 @login_manager.user_loader
 def load_user(user_id):
@@ -72,30 +72,64 @@ def stock_randomize():
     with app.app_context():
         stocks = Stock.query.all()
         for stock in stocks:
-            new_price = round(random.uniform(20,60), 2)
+            new_price = round(random.uniform(15,70), 2)
             stock.price = new_price
         db.session.commit()
     print('randomized!')
 
 scheduler = BackgroundScheduler(daemon=True)
-scheduler.add_job(stock_randomize, 'interval', seconds=20)
+scheduler.add_job(stock_randomize, 'interval', seconds=30)
 scheduler.start()
+
+#getting current date + time
+def check_time():
+    current_datetime = datetime.now()
+    formatted_time = current_datetime.strftime("%I:%M %p")
+    return formatted_time
+
+def is_market_open():
+    now = datetime.now()
+    current_day = now.strftime("%A")
+    current_time = now.time()
+
+    holiday_today = Holidays.query.filter_by(holiday_date=now.date()).first()
+    if holiday_today:
+        return False
+    
+    trading_hours = TradingHours.query.filter_by(day_of_week=current_day).first()
+    if not trading_hours:
+        return False
+    
+    if trading_hours.start_time <= current_time <= trading_hours.end_time:
+        return True
+    return False
 
 # Create tables
 with app.app_context():
     #db.drop_all()
     db.create_all()
 
-#Routes
 
+
+#Routes
 @app.route("/")
 def home():
     if not current_user.is_authenticated:
         return render_template("home.html")
     elif current_user.role == "admin":
-        return render_template("dash_admin.html")
+        if not is_market_open() == True: 
+            status = "Closed"
+        else:
+            status = "Open"
+        current_time = check_time()
+        return render_template("dash_admin.html", current_time=current_time, status=status)
     else:
-        return render_template("dash_user.html")
+        if not is_market_open() == True: 
+            status = "Closed"
+        else:
+            status = "Open"
+        current_time = check_time()
+        return render_template("dash_user.html", current_time=current_time, status=status)
 
 @app.route("/about")
 def about():
@@ -112,11 +146,17 @@ def login_page():
 
 @app.route("/buy")
 def buy():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('stocks'))
     stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template("buy.html", stocks=stocks)
 
 @app.route("/sell")
 def sell():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('stocks'))
     stocks = Stock.query.order_by(Stock.name.asc()).all()
     return render_template('sell.html', stocks=stocks)
 
