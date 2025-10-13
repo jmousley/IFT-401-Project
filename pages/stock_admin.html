@@ -20,6 +20,7 @@
         <tr>
           <th>#</th>
           <th>Name</th>
+          <th>Ticker Symbol</th>
           <th>Price</th>
           <th>Quantity</th>
           <th>Actions</th>
@@ -30,6 +31,7 @@
         <tr>
           <td>{{ loop.index }}</td>
           <td>{{ s.name }}</td>
+          <td>{{ s.ticker }}</td>
           <td>${{ '%.2f'|format(s.price) }}</td>
           <td>{{ s.quantity }}</td>
           <td>

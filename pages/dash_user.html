@@ -36,7 +36,7 @@
         <div class="col-md-6 pb-3">
           <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded">
             <h4 class="mb-1">Portfolio Value:</h4>
-            <h3 class="mb-3">$XXXXX.XX</h3>
+            <h3 class="mb-3">${{  "%.2f"|format(portfolio_value)  }}</h3>
             <button type="submit" class="btn btn-primary">Add funds</button>
           </div>
         </div>
@@ -58,7 +58,35 @@
     <!-- Right side -->
     <div class="col-md-7">
       <div class="mb-3 mt-3 bg-secondary p-3 rounded text-center" style="height: 500px;">
-        <h4 class="mb-1">Portfolio goes here</h4>
+          <div class="table-responsive">
+            <table class="table table-dark table-striped">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Shares Owned</th>
+                  <th>Market Value</th>
+                  <th>Total Value</th>
+                  <th>Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+               {% for x in user_portfolio %}
+                <tr>
+                  <td>{{ x.stock.ticker }}</td>
+                  <td>{{ x.quantity }}</td>
+                  <td>${{  "%.2f"|format(x.stock.price)  }}</td>
+                  <td>${{  "%.2f"|format(x.stock.price * x.quantity) }}</td>
+                  <td>
+                    <a href="{{ url_for('home') }}" class="btn btn-sm btn-primary">Buy</a>
+                    <a href="{{ url_for('home') }}" class="btn btn-sm btn-primary">Sell</a>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center">Your portfolio is empty! Browse through our *stock listings* to find your next investment.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
       </div>
     </div>
   </div>

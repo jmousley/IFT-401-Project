@@ -10,6 +10,7 @@
                     <tr> 
                         <th>Select</th>
                         <th>Stock Name</th>
+                        <th>Ticker Symbol</th>
                         <th>Stock price</th> 
                         <th>Status</th> 
                     </tr> 
@@ -21,6 +22,7 @@
                             <input class="form-check-input" type="radio" name="stock_id" value="{{ stock.id }}" style="position:relative;left:7%;" required>
                         </td>
                         <td>{{stock.name}}</td> 
+                        <td>{{stock.ticker}}</td> 
                         <td>${{"%.2f"|format(stock.price)}}</td> 
                         <td>Available</td>
                     </tr> 

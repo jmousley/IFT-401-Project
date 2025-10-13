@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, redirect
+from flask import Flask, render_template, request, redirect, url_for, flash, redirect, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import random
@@ -22,9 +22,10 @@ login_manager.init_app(app)
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
+    ticker = db.Column(db.String(5), nullable=False, unique=True)
     price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    orders = db.relationship('Order', backref='stock')
+    transactions = db.relationship('Transactions', backref='stock')
     portfolio_entries = db.relationship('Portfolio', backref='stock')
 
 class User(UserMixin, db.Model):
@@ -34,11 +35,11 @@ class User(UserMixin, db.Model):
     fname = db.Column(db.String(100), nullable=False)
     lname = db.Column(db.String(100), nullable=False)
     balance = db.Column(db.Float, nullable=False)
-    orders = db.relationship('Order', backref='user')
+    transactions = db.relationship('Transactions', backref='user')
     portfolio_entries = db.relationship('Portfolio', backref='user')
     role = db.Column(db.String(100), nullable=False)
 
-class Order(db.Model):
+class Transactions(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     stock_id = db.Column(db.Integer, db.ForeignKey('stock.id'), nullable=False)
@@ -87,6 +88,7 @@ def check_time():
     formatted_time = current_datetime.strftime("%I:%M %p")
     return formatted_time
 
+#check if market is open based on local time
 def is_market_open():
     now = datetime.now()
     current_day = now.strftime("%A")
@@ -109,8 +111,6 @@ with app.app_context():
     #db.drop_all()
     db.create_all()
 
-
-
 #Routes
 @app.route("/")
 def home():
@@ -122,14 +122,20 @@ def home():
         else:
             status = "Open"
         current_time = check_time()
-        return render_template("dash_admin.html", current_time=current_time, status=status)
+        user_portfolio = Portfolio.query.filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).all()
+        return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio)
     else:
         if not is_market_open() == True: 
             status = "Closed"
         else:
             status = "Open"
         current_time = check_time()
-        return render_template("dash_user.html", current_time=current_time, status=status)
+        user_portfolio = Portfolio.query.filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).all()
+        portfolio_value = 0.00
+        for e in user_portfolio:
+            portfolio_value += (e.stock.price * int(e.quantity))
+        portfolio_value = round(portfolio_value, 2)
+        return render_template("dash_user.html", current_time=current_time, status=status, user_portfolio=user_portfolio, portfolio_value=portfolio_value)
 
 @app.route("/about")
 def about():
@@ -163,9 +169,28 @@ def sell():
 @app.route("/trading_hours")
 def trading_hours():
     if current_user.role == "admin":
-        return render_template("trading_hours.html")
+        days = TradingHours.query.all()
+        return render_template("trading_hours.html", days=days)
     else:
         return redirect(url_for('home'))
+    
+@app.route('/get_market_hours', methods=['GET'])
+def get_market_hours():
+    if not current_user.role == "admin":
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    day = request.args.get('day')
+    if not day:
+        return jsonify({'error': 'No day provided'}), 400
+
+    record = TradingHours.query.filter_by(day_of_week=day).first()
+    if record:
+        return jsonify({
+            'start_time': record.start_time.strftime("%H:%M"),
+            'end_time': record.end_time.strftime("%H:%M")
+        })
+    else:
+        return jsonify({'start_time': '', 'end_time': ''})
 
 #Routes to ADD database tables
 
@@ -233,7 +258,7 @@ def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
         flash('Fill all fields!', 'error')
         return redirect(url_for('home'))
 
-    new_order = Order(quantity=quantity, date=date, total_price=total_price, transaction_type=transaction_type, user_id=user_id, stock_id=stock_id)
+    new_order = Transactions(quantity=quantity, date=date, total_price=total_price, transaction_type=transaction_type, user_id=user_id, stock_id=stock_id)
 
     try:
         db.session.add(new_order)
@@ -277,6 +302,16 @@ def buy_stock():
         portfolio_entry = Portfolio(user_id=user.id, stock_id=stock.id, quantity=quantity)
         db.session.add(portfolio_entry)
 
+    #add entry to Transactions table
+    new_transaction = Transactions(
+        user_id=user.id, 
+        stock_id=stock.id, 
+        quantity=quantity,
+        date = datetime.now(),
+        total_price = total_price,
+        transaction_type = 'buy'
+    )
+    db.session.add(new_transaction)
     #end
     db.session.commit()
     return redirect(url_for("stocks"))
@@ -312,6 +347,17 @@ def sell_stock():
         db.session.rollback()
         flash(f"Error completing sale: {str(e)}", "danger")
         return redirect(url_for("stocks"))
+    
+    #add entry to Transactions table
+    new_transaction = Transactions(
+        user_id=user.id, 
+        stock_id=stock.id, 
+        quantity=quantity,
+        date = datetime.now(),
+        total_price = total_price,
+        transaction_type = 'sell'
+    )
+    db.session.add(new_transaction)
         
     #end
     db.session.commit()
@@ -524,7 +570,7 @@ def delete_admin(id):
 #Order
 @app.route('/delete_order/<int:id>')
 def delete_order(id):
-    order = Order.query.get_or_404(id)
+    order = Transactions.query.get_or_404(id)
     try:
         db.session.delete(order)
         db.session.commit()
@@ -612,6 +658,7 @@ def add_stock_page():
 
     if request.method == "POST":
         name = request.form.get("name")
+        ticker = request.form.get("ticker")
         try:
             price = float(request.form.get("price", 0))
         except (TypeError, ValueError):
@@ -621,11 +668,11 @@ def add_stock_page():
         except (TypeError, ValueError):
             quantity = None
 
-        if not name or price is None or quantity is None:
+        if not name or not ticker or price is None or quantity is None:
             flash("Please fill all fields correctly.", "error")
             return redirect(url_for("add_stock_page"))
 
-        new_stock = Stock(name=name, price=price, quantity=quantity)
+        new_stock = Stock(name=name, price=price, quantity=quantity, ticker=ticker)
         db.session.add(new_stock)
         db.session.commit()
         flash(f"Stock '{name}' added.", "success")
@@ -645,6 +692,7 @@ def edit_stock(id):
 
     if request.method == 'POST':
         name = request.form.get('name')
+        ticker = request.form.get('ticker')
         try:
             price = float(request.form.get('price', 0))
         except (TypeError, ValueError):
@@ -654,13 +702,14 @@ def edit_stock(id):
         except (TypeError, ValueError):
             quantity = None
 
-        if not name or price is None or quantity is None:
+        if not name or not ticker or price is None or quantity is None:
             flash("Please fill all fields correctly.", "error")
             return redirect(url_for('edit_stock_page', id=id))
 
         stock.name = name
         stock.price = price
         stock.quantity = quantity
+        stock.ticker = ticker
 
         try:
             db.session.commit()
