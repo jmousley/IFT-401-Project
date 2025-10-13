@@ -15,3 +15,35 @@ body {
   background-size: cover;
   background-blend-mode: overlay;
 }
+html, body {
+  overflow-x: hidden;
+}
+
+.content-scroll {
+  height: calc(100vh - 120px); 
+  overflow-y: scroll;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  scrollbar-gutter: stable both-edges;
+}
+
+.content-scroll .content-inner {
+  padding-right: 12px;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.content-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+.content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.content-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.12);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}

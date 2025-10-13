@@ -18,7 +18,7 @@
                 <div class="col-md-6 mt-4">
                     <div class="mb-3"> 
                         <label class="form-label">Day of the Week:</label>
-                        <select class="form-select" name="day_of_week" required>
+                        <select class="form-select" name="day_of_week" id="day_of_week" required>
                             <option value="Sunday">Sunday</option>
                             <option value="Monday">Monday</option>
                             <option value="Tuesday">Tuesday</option>
@@ -34,13 +34,13 @@
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Start Time:</label>
-                        <input type="time" name="start_time" class="form-control" placeholder="HH:MM" required>
+                        <input type="time" name="start_time" class="form-control" id="start_time" required>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label">End Time:</label>
-                        <input type="time" name="end_time" class="form-control" placeholder="HH:MM" required>
+                        <input type="time" name="end_time" class="form-control" id="end_time" required>
                     </div>
                 </div>
             </div>
@@ -53,5 +53,44 @@
         </form>
     </div>
 </div>
+
+
+
+<script>
+document.getElementById('day_of_week').addEventListener('change', function() {
+    const day = this.value;
+    if (!day) return;
+
+    fetch(`/get_market_hours?day=${day}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            document.getElementById('start_time').value = data.start_time || '';
+            document.getElementById('end_time').value = data.end_time || '';
+        })
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('day_of_week');
+    const defaultDay = select.value;
+    if (defaultDay) {
+        fetch(`/get_market_hours?day=${defaultDay}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                document.getElementById('start_time').value = data.start_time || '';
+                document.getElementById('end_time').value = data.end_time || '';
+            });
+    }
+});
+</script>
 
 {% endblock %}

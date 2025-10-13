@@ -3,21 +3,21 @@
 {% block content %}
 <style>
   :root{
-    --nav-h: 56px;                               /* approximate navbar height */
-    --gap: clamp(18px, 3.5vh, 36px);             /* global vertical spacing for this page */
-    --maxw: 820px;                               /* text line length */
-    --cardw: 540px;                              /* login card width */
+    --nav-h: 56px;
+    --gap: clamp(18px, 3.5vh, 36px);
+    --maxw: 820px;
+    --cardw: 540px;
   }
 
   html, body { height: 100%; }
   body { overflow: hidden; }
 
-  /* Fill the viewport minus the nav and center the stack */
+
   .home-viewport{
     height: calc(100svh - var(--nav-h));
     display: grid;
     place-items: center;
-    padding: 0 16px; /* small side breathing room */
+    padding: 0 16px; 
   }
   .home-stack{
     display: flex;
@@ -30,7 +30,7 @@
   .home-card{
     width: min(var(--cardw), 100%);
   }
-  /* Subtle headline tightening */
+ 
   .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
 </style>
 <body id="home_body">

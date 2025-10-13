@@ -12,7 +12,11 @@
     {% endwith %}
 <div class="container-fluid p-5 pt-4">
   <h1 class="pb-2">Admin Dashboard</h1>
-  <h2 class="pb-3">Welcome, {{ current_user.fname }}</h2>
+  <div class="d-flex justify-content-between align-items-center">
+    <h3>Welcome, {{ current_user.fname }}</h3>
+    <h3 style="margin-left: 55%;">{{"Market Status - " ~ status}}</h3>
+    <h3>{{ current_time }}</h3>
+  </div>
 
   <div class="row">
 
@@ -38,7 +42,7 @@
         <div class="col-md-4 pb-3 d-flex">
           <a href="{{ url_for('trading_hours') }}" class="text-decoration-none text-reset flex-fill">
           <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded flex-fill">
-            <h4 class="mb-1">Modify Market Hours</h4>
+            <h4 class="mb-1">Modify Market Schedule</h4>
           </div>
           </a>
         </div>
