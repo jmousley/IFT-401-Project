@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 import random
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import time, datetime
+from sqlalchemy import desc
 
 
 app = Flask(__name__, template_folder="pages")
@@ -44,7 +45,7 @@ class Transactions(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     stock_id = db.Column(db.Integer, db.ForeignKey('stock.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     transaction_type = db.Column(db.String(100), nullable=False)
 
@@ -116,26 +117,29 @@ with app.app_context():
 def home():
     if not current_user.is_authenticated:
         return render_template("home.html")
+    
     elif current_user.role == "admin":
         if not is_market_open() == True: 
             status = "Closed"
         else:
             status = "Open"
         current_time = check_time()
-        user_portfolio = Portfolio.query.filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).all()
+        user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).order_by(Stock.ticker.asc()).all()
         return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio)
+    
     else:
         if not is_market_open() == True: 
             status = "Closed"
         else:
             status = "Open"
         current_time = check_time()
-        user_portfolio = Portfolio.query.filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).all()
+        user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).order_by(Stock.ticker.asc()).all()
+        transaction_summary = db.session.query(Transactions).join(Stock).filter(Transactions.user_id == current_user.id).order_by(desc(Transactions.date)).limit(15).all()
         portfolio_value = 0.00
         for e in user_portfolio:
             portfolio_value += (e.stock.price * int(e.quantity))
         portfolio_value = round(portfolio_value, 2)
-        return render_template("dash_user.html", current_time=current_time, status=status, user_portfolio=user_portfolio, portfolio_value=portfolio_value)
+        return render_template("dash_user.html", current_time=current_time, status=status, user_portfolio=user_portfolio, portfolio_value=portfolio_value, transaction_summary = transaction_summary)
 
 @app.route("/about")
 def about():
