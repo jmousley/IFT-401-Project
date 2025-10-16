@@ -402,41 +402,47 @@ def sell_stock(balance: float,price : int, shares: int):
 #Routes to EDIT database tables
 
 #Add to balance
-@app.route('/add_funds/<int:id>', methods=["get", "post"])
-def add_funds(id):
+@app.route('/add_funds', methods=["get", "post"])
+def add_funds():
     
-    user = User.query.get_or_404(id)
-    #amount = request.form['addamount']
-    amount = 1000.00
-    new_amount = user.balance + float(amount)
+    if request.method == "POST":
+        user = User.query.get_or_404(current_user.id)
+        amount = float(request.form['deposit_amount'])
 
-    try:
-        user.balance = new_amount
-        db.session.commit()
-        flash('Success!', 'success')
-        return redirect(url_for('home'))
-
-    except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
+        try:
+            user.balance += amount
+            db.session.commit()
+            flash(f'${amount:.2f} deposited!', 'success')
             return redirect(url_for('home'))
+
+        except Exception as e:
+                flash(f'Error: {str(e)}', 'error')
+                return redirect(url_for('home'))
+        
+    return render_template("add_funds.html")
     
 
 #Subtract from balance
-# @app.route('/subtract_funds/<int:id>/<float:amount>', methods=['GET', 'POST'])
-# def subtract_funds(id, amount):
-    
-#     user = User.query.get_or_404(id)
-#     new_amount = user.balance - float(amount)
+@app.route('/subtract_funds', methods=['POST'])
+def subtract_funds():  
+    if request.method == "POST":
+        user = User.query.get_or_404(current_user.id)
+        amount = float(request.form['withdraw_amount'])
+        if user.balance >= amount:
+            try:
+                user.balance -= amount
+                db.session.commit()
+                flash(f'${amount:.2f} withdrawn!', 'success')
+                return redirect(url_for('home'))
 
-#     try:
-#         user.balance = new_amount
-#         db.session.commit()
-#         flash('Success!', 'success')
-#         return redirect(url_for('home'))
-
-#     except Exception as e:
-#             flash(f'Error: {str(e)}', 'error')
-#             return redirect(url_for('home'))
+            except Exception as e:
+                    flash(f'Error: {str(e)}', 'error')
+                    return redirect(url_for('home'))
+        else:
+            flash(f'Account balance insufficient', 'danger')
+            return redirect(url_for('add_funds'))
+        
+    return render_template("add_funds.html")
 
 
 #Stock

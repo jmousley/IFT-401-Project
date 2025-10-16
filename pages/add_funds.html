@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Edit Market Hours{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 120px); padding-bottom: 40px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+
+    <div class="container bg-dark border border-light rounded-5 p-4 pt-5 pb-5" style="max-width: 500px; margin: 0 50px;">
+        <h1 class="text-center">Add Funds</h1>
+        <form action="/add_funds" method="POST">
+
+            <div class="row">
+                <div class="col-md-6 mt-4 mb-3 offset-md-1">
+                    <label class="form-label">Select Payment Method:</label>
+                    <select class="form-select" name="account" required>
+                        <option value="card">Card ending in XXXX</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mt-4" style="padding-top: 3%; text-align: center; font-size: 110%; margin-left: 3%;">
+                    <a href="{{ url_for('home') }}">Add new payment method</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 offset-md-1">
+                    <label class="form-label">Amount:</label>
+                    <div class="mb-3">
+                        <input type="number" name="deposit_amount" class="form-control" placeholder="XX.XX" step="0.01" min="0.00" required>
+                    </div>
+                </div>
+            </div>
+
+             <div class="row justify-content-center mt-3">
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+             </div>
+        </form>
+    </div>
+
+
+<div class="container bg-dark border border-light rounded-5 p-4 pt-5 pb-5" style="max-width: 500px; margin: 0 50px;">
+        <h1 class="text-center">Withdraw Funds</h1>
+        <form action="/subtract_funds" method="POST">
+
+            <div class="row">
+                <div class="col-md-6 mt-4 mb-3 offset-md-1">
+                    <label class="form-label">Target Account:</label>
+                    <select class="form-select" name="account" required>
+                        <option value="card">Card ending in XXXX</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 offset-md-1">
+                    <label class="form-label">Amount:</label>
+                    <div class="mb-3">
+                        <input type="number" name="withdraw_amount" class="form-control" placeholder="XX.XX" step="0.01" min="0.00" required>
+                    </div>
+                </div>
+            </div>
+
+             <div class="row justify-content-center mt-3">
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+             </div>
+        </form>
+    </div>
+
+
+
+</div>
+{%  endblock  %}

@@ -28,7 +28,7 @@
           <div class="mb-3 mt-3 bg-secondary d-flex flex-column align-items-start p-3 rounded" style="height: 90%;">
             <h3 class="mb-1">Balance:</h3>
             <h2 class="mb-3">${{ "%.2f"|format(current_user.balance) }}</h2>
-            <form action="{{ url_for('add_funds', id=current_user.id) }}" method="post">
+            <form action="{{ url_for('add_funds') }}">
               <button type="submit" class="btn btn-primary">Add funds</button>
             </form>
           </div>
