@@ -412,6 +412,22 @@ def delete_stock(id):
         flash(f'Error deleting stock: {str(e)}', 'error')
     return redirect(url_for('stock_admin'))
 
+#Delete Holiday
+@app.route('/delete_holiday/<string:name>')
+def delete_holiday(name):
+    if current_user.role == "user":
+        redirect(url_for('home'))
+
+    holiday = Holidays.query.get_or_404(name)
+    try:
+        db.session.delete(holiday)
+        db.session.commit()
+        flash(f'User {holiday.name} deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting holiday: {str(e)}', 'error')
+    return redirect(url_for('holiday_admin'))
+
 
 #User
 @app.route('/delete_user/<int:id>')
@@ -591,10 +607,6 @@ def edit_stock(id):
 
     # GET -> show form pre-filled
     return render_template('edit_stock_page.html', stock=stock)
-
-#run this to populate the db with the days of the week quickly.
-#with app.app_context():
-#    init_market_hours()
 
 #Edit Market Hours
 @app.route("/edit_market_hours", methods=["POST"])

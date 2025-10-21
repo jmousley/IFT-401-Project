@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Edit Market Hours{% endblock %}
+{% block title %}Edit Holidays{% endblock %}
 {% block content %}
 
-<div class="d-flex flex-column justify-content-center align-items-center" style="min-height: calc(100vh - 120px); padding-bottom: 40px;">
+<div class="container-fluid pt-4" style="min-height: calc(80vh - 120px); height: calc(80vh - 120px); padding-left: 5%; padding-right: 5%;">
+    <h1 class="pb-2">Holiday Overview</h1>
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -10,31 +11,76 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-    <div class="container bg-dark border border-light rounded-5 p-5" style="max-width: 700px;">
-        <h1 class="text-center">Edit Market Hours</h1>
-        <form action="/add_holiday" method="POST">
+    
+    <div style="display: flex; justify-content: space-around; align-items: flex-start; height: 100%;" class="mt-5">
 
-        <div class="row gy-4">
-        <div class="col-md-6">
-            <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Add Holiday (stops buy/sell on this date)</h5>
-                <form method="post" action="{{ url_for('add_holiday') }}">
-                <div class="mb-3">
-                    <label for="holiday_name" class="form-label">Holiday name</label>
-                    <input id="holiday_name" name="name" class="form-control" type="text" required maxlength="120" />
+        <div class="container bg-dark border border-light rounded-5 p-5" style="flex: 0 0 30%;">
+            <h2 class="text-center">Add Holiday</h2>
+            <form action="{{ url_for('add_holiday') }}" method="POST">
+                <div class="row justify-content-center">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="mb-3 mt-3">
+                                <label class="form-label">Holiday Name:</label>
+                                <input type="text" name="name" class="form-control" required maxlength="120">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="holiday_date" class="form-label">Date</label>
-                    <input id="holiday_date" name="holiday_date" class="form-control" type="date" required />
+
+                <div class="row justify-content-center">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="mb-3 mt-3">
+                                <div class="mb-3">
+                                    <label for="holiday_date" class="form-label">Date:</label>
+                                    <input id="holiday_date" name="holiday_date" class="form-control" type="date" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-success">Add Holiday</button>
-                </form>
-            </div>
-            </div>
-             <div class="row justify-content-center mt-3">
-             </div>
-        </form>
+
+                <div class="row justify-content-center mt-3">
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="container bg-dark border border-light p-5" style="flex: 0 0 50%; height: 100%;">
+            <h2 class="text-center mb-4">Current Holiday List:</h2>
+            {%  if not holidays  %}
+                <div class="d-flex justify-content-center">
+                <p class="text-center fs-4 mt-3 p-3" style="width: 40rem; background-color: #28282c; border-radius: 30px;">No detected holidays.</p>
+                </div>
+              {%  else  %}
+                <div class="table-responsive flex-grow-1" style="overflow: auto; height: 90%;">
+                  <table class="table table-dark table-striped text-center border-bottom border-dark">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Holiday Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {%  for h in holidays  %}
+                      <tr>
+                        <td>{{ h.holiday_date.strftime('%m/%d/%Y') }}</td>
+                        <td>{{ h.name }}</td>
+                        <td>
+                        <a href="{{ url_for('delete_holiday', name=h.name) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ h.name }}?');">Delete</a>
+                        <td>
+                      </tr>
+                      {%  endfor  %}
+                    </tbody>
+                  </table>
+                </div>
+              {%  endif  %}
+        </div>
+
     </div>
 </div>
 {% endblock %}
