@@ -577,5 +577,55 @@ def edit_market_hours():
     flash(f"Updated!", "success")
     return render_template("trading_hours.html")
 
+
+
+#Admin Holiday Management Page
+@app.route('/holiday_admin')
+@login_required
+def holiday_admin():
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only.", "error")
+        return redirect(url_for('home'))
+
+    holidays = Holidays.query.order_by(Holidays.holiday_date).all()
+    return render_template('holiday_admin.html', holidays=holidays)
+
+@app.route('/add_holiday', methods=['POST'])
+@login_required
+def add_holiday():
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only.", "error")
+        return redirect(url_for('home'))
+
+    name = (request.form.get('name') or '').strip()
+    date_str = (request.form.get('holiday_date') or '').strip()
+
+    if not name or not date_str:
+        flash("Please provide both a holiday name and date.", "error")
+        return redirect(url_for('holiday_admin'))
+
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        flash("Invalid date format. Use YYYY-MM-DD.", "error")
+        return redirect(url_for('holiday_admin'))
+
+    existing = Holidays.query.filter_by(holiday_date=date_obj).first()
+    if existing:
+        flash(f"A holiday already exists on {date_obj.isoformat()}: {existing.name}", "error")
+        return redirect(url_for('holiday_admin'))
+
+    holiday = Holidays(name=name, holiday_date=date_obj)
+    try:
+        db.session.add(holiday)
+        db.session.commit()
+        flash(f"Holiday '{name}' added for {date_obj.isoformat()}.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error adding holiday: {e}", "error")
+
+    return redirect(url_for('holiday_admin'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)

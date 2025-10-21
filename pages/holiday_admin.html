@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Edit Market Hours{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-column justify-content-center align-items-center" style="min-height: calc(100vh - 120px); padding-bottom: 40px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    <div class="container bg-dark border border-light rounded-5 p-5" style="max-width: 700px;">
+        <h1 class="text-center">Edit Market Hours</h1>
+        <form action="/add_holiday" method="POST">
+
+        <div class="row gy-4">
+        <div class="col-md-6">
+            <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Add Holiday (stops buy/sell on this date)</h5>
+                <form method="post" action="{{ url_for('add_holiday') }}">
+                <div class="mb-3">
+                    <label for="holiday_name" class="form-label">Holiday name</label>
+                    <input id="holiday_name" name="name" class="form-control" type="text" required maxlength="120" />
+                </div>
+                <div class="mb-3">
+                    <label for="holiday_date" class="form-label">Date</label>
+                    <input id="holiday_date" name="holiday_date" class="form-control" type="date" required />
+                </div>
+                <button type="submit" class="btn btn-success">Add Holiday</button>
+                </form>
+            </div>
+            </div>
+             <div class="row justify-content-center mt-3">
+             </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
