@@ -79,6 +79,14 @@ def stock_randomize():
         db.session.commit()
     print('randomized!')
 
+#Initialize Market Hours
+def init_market_hours():
+    days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    for day in days_of_week:
+        trading_hours = TradingHours(day_of_week=day, start_time=time(8, 0), end_time=time(17, 0))
+        db.session.add(trading_hours)
+    db.session.commit()
+
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.add_job(stock_randomize, 'interval', seconds=30)
 scheduler.start()
@@ -111,6 +119,9 @@ def is_market_open():
 with app.app_context():
     #db.drop_all()
     db.create_all()
+    if TradingHours.query.first() is None:
+        init_market_hours()
+
 
 #Routes
 @app.route("/")
@@ -196,91 +207,13 @@ def get_market_hours():
     else:
         return jsonify({'start_time': '', 'end_time': ''})
 
-#Routes to ADD database tables
 
-#Add Stock Route
-@app.route('/add_stock/<string:name>/<float:price>/<int:quantity>')
-def add_stock(name, price, quantity):
-    if not name or not price or not quantity:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-    new_stock = Stock(name=name, price=price, quantity=quantity)
-
-    try:
-        db.session.add(new_stock)
-        db.session.commit()
-        flash(f'Stock {name} added!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding stock: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-#Add User Route
-@app.route('/add_user/<string:email>/<string:password>/<string:fname>/<string:lname>')
-def add_user(email, password, fname, lname):
-    if not email or not password or not fname or not lname:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-
-    new_user = User(email=email, password=password, fname=fname, lname=lname, balance=0.00)
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        flash(f'User {new_user.email} added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding user: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-
-#Add Admin Route
-@app.route('/add_admin/<string:email>/<string:password>/<string:fname>/<string:lname>')
-def add_admin(email, password, fname, lname):
-    if not email or not password or not fname or not lname:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-
-    new_admin = Admin(email=email, password=password, fname=fname, lname=lname)
-
-    try:
-        db.session.add(new_admin)
-        db.session.commit()
-        flash(f'User {new_admin.email} added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding admin: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-
-#Add Order Route
-@app.route('/add_order/<int:quantity>/<string:date>/<float:total_price>/<string:transaction_type>/<int:user_id>/<int:stock_id>')
-def add_order(quantity, date, total_price, transaction_type, user_id, stock_id):
-    if not quantity or not date or not total_price or not transaction_type:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-
-    new_order = Transactions(quantity=quantity, date=date, total_price=total_price, transaction_type=transaction_type, user_id=user_id, stock_id=stock_id)
-
-    try:
-        db.session.add(new_order)
-        db.session.commit()
-        flash(f'Order {new_order.id} added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding admin: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-#FULL BUY STOCK PROCESS
-@app.route('/buy_stock', methods=["POST"])
-def buy_stock():
+@app.route('/buy_confirmation', methods=["POST"])
+def confirm_buy():
     stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
-    quantity = request.form['quantity']
+    quantity = float(request.form['quantity'])
     total_price = stock_price * float(quantity)
     user = current_user
 
@@ -288,6 +221,28 @@ def buy_stock():
         flash("Insufficient funds", "danger")
         return redirect(url_for("stocks"))
     
+    return render_template(
+    'confirmation.html', 
+    purchase_type="buy",
+    stock_id=stock_id,
+    stock=stock,
+    stock_price=stock_price,
+    quantity=quantity,
+    total_price=total_price,
+    user=user
+    )
+
+#FULL BUY STOCK PROCESS
+@app.route('/buy_stock', methods=["POST"])
+def buy_stock():
+    stock_id = request.form['stock_id']
+    stock = Stock.query.get_or_404(stock_id)
+    quantity = request.form['quantity']
+    quantity = int(quantity)
+    total_price = request.form['total_price']
+    total_price = float(total_price)
+    user = current_user
+
     try:
         user.balance -= total_price
         db.session.commit()
@@ -320,14 +275,12 @@ def buy_stock():
     db.session.commit()
     return redirect(url_for("stocks"))
 
-
-#FULL SELL STOCK PROCESS
-@app.route('/sell_stock', methods=["POST"])
-def sell_stock():
+@app.route('/sell_confirmation', methods=["POST"])
+def confirm_sell():
     stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
-    quantity = request.form['quantity']
+    quantity = float(request.form['quantity'])
     total_price = stock_price * float(quantity)
     user = current_user
 
@@ -340,8 +293,33 @@ def sell_stock():
     elif portfolio_entry.quantity < int(quantity):
         flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
         return redirect(url_for("stocks"))
-    else:
-        portfolio_entry.quantity -= int(quantity)
+    
+    return render_template(
+    'confirmation.html', 
+    purchase_type="sell",
+    stock_id=stock_id,
+    stock=stock,
+    stock_price=stock_price,
+    quantity=quantity,
+    total_price=total_price,
+    user=user
+    )
+
+
+#FULL SELL STOCK PROCESS
+@app.route('/sell_stock', methods=["POST"])
+def sell_stock():
+    stock_id = request.form['stock_id']
+    stock = Stock.query.get_or_404(stock_id)
+    quantity = request.form['quantity']
+    quantity = int(quantity)
+    total_price = request.form['total_price']
+    total_price = float(total_price)
+    user = current_user
+
+    portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
+    portfolio_entry.quantity -= int(quantity)
+
     try:
          user.balance += total_price
          db.session.commit()
@@ -366,37 +344,6 @@ def sell_stock():
     #end
     db.session.commit()
     return redirect(url_for("stocks"))
-
-
-
-#Add Portfolio Route
-@app.route('/add_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>')
-def add_portfolio(quantity, user_id, stock_id):
-    if not quantity:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-
-    new_portfolio = Portfolio(quantity=quantity, user_id=user_id, stock_id=stock_id)
-
-    try:
-        db.session.add(new_portfolio)
-        db.session.commit()
-        flash(f'Portfolio {new_portfolio.id} added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding portfolio: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-#Add Sell Route
-'''@app.route("/sell_stock/<float:balance>/<float:price>/<float:shares>", methods=["POST", "GET"])
-def sell_stock(balance: float,price : int, shares: int):
-    if not balance or not price or not shares:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))   
-
-    sell_stock = Sell(balance=balance, price=price, shares=shares) 
-    new_balance = (balance - (price * shares))'''
 
 
 #Routes to EDIT database tables
@@ -445,99 +392,14 @@ def subtract_funds():
     return render_template("add_funds.html")
 
 
-#Stock
-#@app.route('/edit_stock_page/<string:name>/<float:price>/<int:quantity>/<int:id>')
-#def edit_stock(name, price, quantity, id):
-#    if not name or not price or not quantity:
-#        flash('Fill all fields!', 'error')
-#        return redirect(url_for('home'))
-#    
-#    stock = Stock.query.get_or_404(id)
-#    stock.name = name
-#    stock.price = price
-#    stock.quantity = quantity
-#
-#
-#    try:
-#        db.session.commit()
-#        flash(f'Stock {name} updated!', 'success')
-#    except Exception as e:
-#        db.session.rollback()
-#        flash(f'Error updating stock: {str(e)}', 'error')#
-#
-#    return redirect(url_for('stocks'))
-
-#User
-@app.route('/edit_user/<string:email>/<string:password>/<string:fname>/<string:lname>/<int:id>')
-def edit_user(email, password, fname, lname, id):
-    if not email or not password or not fname or not lname:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-    
-    user = User.query.get_or_404(id)
-    user.email = email
-    user.password = password
-    user.fname = fname
-    user.lname = lname
-
-
-    try:
-        db.session.commit()
-        flash(f'User {email} updated!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating user: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-#Admin
-@app.route('/edit_admin/<string:email>/<string:password>/<string:fname>/<string:lname>/<int:id>')
-def edit_admin(email, password, fname, lname, id):
-    if not email or not password or not fname or not lname:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-    
-    admin = Admin.query.get_or_404(id)
-    admin.email = email
-    admin.password = password
-    admin.fname = fname
-    admin.lname = lname
-
-
-    try:
-        db.session.commit()
-        flash(f'Admin {email} updated!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating Admin: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-#Portfolio
-@app.route('/edit_portfolio/<int:quantity>/<int:user_id>/<int:stock_id>/<int:portfolio_id>')
-def edit_portfolio(quantity, user_id, stock_id, portfolio_id):
-    if not quantity or not user_id or not stock_id:
-        flash('Fill all fields!', 'error')
-        return redirect(url_for('home'))
-    
-    portfolio = Portfolio.query.get_or_404(portfolio_id)
-    portfolio.quantity = quantity
-
-    try:
-        db.session.commit()
-        flash(f'Portfolio #{portfolio_id} updated!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating portfolio: {str(e)}', 'error')
-
-    return redirect(url_for('stocks'))
-
-
 #Routes to DELETE stuff
 
 #Stock
 @app.route('/delete_stock/<int:id>')
 def delete_stock(id):
+    if current_user.role == "user":
+        redirect(url_for('home'))
+
     stock = Stock.query.get_or_404(id)
     try:
         db.session.delete(stock)
@@ -563,20 +425,6 @@ def delete_user(id):
     return redirect(url_for('stocks'))
 
 
-#Admin
-@app.route('/delete_admin/<int:id>')
-def delete_admin(id):
-    admin = Admin.query.get_or_404(id)
-    try:
-        db.session.delete(admin)
-        db.session.commit()
-        flash(f'User {admin.email} deleted successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting admin: {str(e)}', 'error')
-    return redirect(url_for('stocks'))
-
-
 #Order
 @app.route('/delete_order/<int:id>')
 def delete_order(id):
@@ -589,24 +437,6 @@ def delete_order(id):
         db.session.rollback()
         flash(f'Error deleting order: {str(e)}', 'error')
     return redirect(url_for('stocks'))
-
-
-#Portfolio
-@app.route('/delete_portfolio/<int:id>')
-def delete_portfolio(id):
-    portfolio = Portfolio.query.get_or_404(id)
-    try:
-        db.session.delete(portfolio)
-        db.session.commit()
-        flash(f'Portfolio {portfolio.id} deleted successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting portfolio: {str(e)}', 'error')
-    return redirect(url_for('stocks'))
-
-@app.route('/test')
-def test_page():
-    return render_template('test.html')
 
 
 #Registration Route
@@ -733,14 +563,6 @@ def edit_stock(id):
     # GET -> show form pre-filled
     return render_template('edit_stock_page.html', stock=stock)
 
-#Initialize Market Hours
-def init_market_hours():
-    days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    for day in days_of_week:
-        trading_hours = TradingHours(day_of_week=day, start_time=time(8, 0), end_time=time(17, 0))
-        db.session.add(trading_hours)
-    db.session.commit()
-
 #run this to populate the db with the days of the week quickly.
 #with app.app_context():
 #    init_market_hours()
@@ -757,6 +579,3 @@ def edit_market_hours():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-#testing git branch
-#AHHHHHHHHHHHHHHHHHHHHHHHHHHH 

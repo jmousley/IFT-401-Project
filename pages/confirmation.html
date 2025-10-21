@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block content %}
+
+{% if purchase_type == "buy" %}
+<div class="container-fluid pt-4" style="padding-left: 5%; padding-right: 5%;">
+  <h1>Confirm Purchase</h1>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 0 0 55%; padding: 2%;">
+      <hr style="width: 90%;">
+      <h3 style="display: inline;">Purchase Summary</h3> 
+      <h5 style="display: inline; margin-left: 1%;">(1 Item)</h5>
+      <div style="margin-left: 5%; margin-bottom: 3%;">
+        <h4 class="mt-5">Stock {{stock.ticker}} | {{stock.name}}</h4>
+        <h4>${{  "%.2f"|format(stock_price)  }}/stock</h4>
+        <h5 class="mt-4">Quantity</h5>
+        <h5>{{  "%.0f"|format(quantity)  }} share(s)</h5>
+      </div>
+      <hr style="width: 90%;">
+      <h3>Account overview</h3>
+      <div style="margin-left: 5%;">
+        <h4 class="mt-5">Current user balance:</h4>
+        <h5>${{"%.2f"|format(user.balance)}}</h5>
+        <h4 class="mt-4">Balance after transaction:</h4>
+        <h5>${{"%.2f"|format(user.balance - total_price)}}</h5>
+      </div>
+    </div>
+
+    <div style="flex: 0 0 40%; padding: 2%; border: 2px solid grey; border-radius: 15px;">
+      <h3>Cart</h3>
+      <div style="margin: 5%;">
+        <div style="display: flex; flex-direction: row; justify-content: space-between;">
+          <h4 style="margin: 0;">Stock {{stock.ticker}} (x{{  "%.0f"|format(quantity)  }})</h4>
+          <h4 style="margin: 0;">${{  "%.2f"|format(stock_price * quantity) }}</h4>
+        </div>
+        <h5 class="mt-2">{{  "%.0f"|format(quantity)  }} share(s)</h5>
+        <form method="post" action="/buy_stock" class= "m-0 p-0">
+          <input type="hidden" name="stock_id" value="{{ stock_id }}">
+          <input type="hidden" name="quantity" value="{{  '%.0f' | format(quantity)}} ">
+          <input type="hidden" name="total_price" value="{{ '%.2f'| format(stock_price * quantity) }}">
+          <button class="btn btn-primary mt-4 w-100" type="submit">Confirm</button>
+        </form>
+        <br>
+        <a class="btn btn-secondary mt-0 w-100" href="{{ url_for('home') }}">Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% elif purchase_type == "sell" %}
+
+<div class="container-fluid pt-4" style="padding-left: 5%; padding-right: 5%;">
+  <h1>Confirm Sale</h1>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 0 0 55%; padding: 2%;">
+      <hr style="width: 90%;">
+      <h3 style="display: inline;">Sale Summary</h3> 
+      <h5 style="display: inline; margin-left: 1%;">(1 Item)</h5>
+      <div style="margin-left: 5%; margin-bottom: 3%;">
+        <h4 class="mt-5">Stock {{stock.ticker}} | {{stock.name}}</h4>
+        <h4>${{  "%.2f"|format(stock_price)  }}/stock</h4>
+        <h5 class="mt-4">Quantity</h5>
+        <h5>{{  "%.0f"|format(quantity)  }} share(s)</h5>
+      </div>
+      <hr style="width: 90%;">
+      <h3>Account overview</h3>
+      <div style="margin-left: 5%;">
+        <h4 class="mt-5">Current user balance:</h4>
+        <h5>${{"%.2f"|format(user.balance)}}</h5>
+        <h4 class="mt-4">Balance after transaction:</h4>
+        <h5>${{"%.2f"|format(user.balance + total_price)}}</h5>
+      </div>
+    </div>
+
+    <div style="flex: 0 0 40%; padding: 2%; border: 2px solid grey; border-radius: 15px;">
+      <h3>Pending Sale</h3>
+      <div style="margin: 5%;">
+        <div style="display: flex; flex-direction: row; justify-content: space-between;">
+          <h4 style="margin: 0;">Stock {{stock.ticker}} (x{{  "%.0f"|format(quantity)  }})</h4>
+          <h4 style="margin: 0;">${{  "%.2f"|format(stock_price * quantity) }}</h4>
+        </div>
+        <h5 class="mt-2">{{  "%.0f"|format(quantity)  }} share(s)</h5>
+        <form method="post" action="/sell_stock" class= "m-0 p-0">
+          <input type="hidden" name="stock_id" value="{{ stock_id }}">
+          <input type="hidden" name="quantity" value="{{  '%.0f' | format(quantity)}} ">
+          <input type="hidden" name="total_price" value="{{ '%.2f'| format(stock_price * quantity) }}">
+          <button class="btn btn-primary mt-4 w-100" type="submit">Confirm</button>
+        </form>
+        <br>
+        <a class="btn btn-secondary mt-0 w-100" href="{{ url_for('home') }}">Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

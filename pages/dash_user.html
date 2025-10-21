@@ -10,7 +10,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-<div class="container-fluid p-5 pt-4" style="min-height: calc(80vh - 120px);">
+<div class="container-fluid pt-4" style="min-height: calc(80vh - 120px); padding-left: 5%; padding-right: 5%;">
     
   <h1 class="pb-2">User Dashboard</h1>
   <div class="d-flex justify-content-between align-items-center">
@@ -44,7 +44,7 @@
       <div class="row flex-grow-1 d-flex align-items-stretch flex-column flex-fill" style="height: 1%;">
         <div class="col-md-10 d-flex flex-column flex-grow-1" style="height: 1%;">
             <div class="mb-3 mt-3 bg-secondary p-3 rounded d-flex flex-column flex-grow-1" style="height: 1%;">
-            <h2 class="mb-4 align-self-start">Transaction Summary:</h2>
+            <h2 class=" mb-4 align-self-start">Transaction Summary:</h2>
 
             {%  if not transaction_summary  %}
             <div class="d-flex justify-content-center" >
