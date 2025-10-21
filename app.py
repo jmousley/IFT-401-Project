@@ -422,7 +422,7 @@ def delete_holiday(name):
     try:
         db.session.delete(holiday)
         db.session.commit()
-        flash(f'User {holiday.name} deleted successfully!', 'success')
+        flash(f'Holiday {holiday.name} deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting holiday: {str(e)}', 'error')
