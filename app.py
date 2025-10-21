@@ -5,6 +5,8 @@ import random
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import time, datetime
 from sqlalchemy import desc
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 
 app = Flask(__name__, template_folder="pages")
@@ -443,17 +445,44 @@ def delete_order(id):
 @app.route('/signup', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        # Normalize
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password") or ""
+        fname = (request.form.get("fname") or "").strip()
+        lname = (request.form.get("lname") or "").strip()
+
+        # Basic guard (optional)
+        if not email or not password or not fname or not lname:
+            flash("All fields are required.", "danger")
+            return render_template("signup.html", fname=fname, lname=lname, email=email)
+
+        # App-level duplicate check (case-insensitive)
+        existing = User.query.filter(func.lower(User.email) == email).first()
+        if existing:
+            flash("An account with that email already exists. Please log in or use a different email.", "warning")
+            return render_template("signup.html", fname=fname, lname=lname, email=email)
+
+        # Create user
         user = User(
-            email=request.form.get("email"),
-            password=request.form.get("password"),
-            fname=request.form.get("fname"),
-            lname=request.form.get("lname"),
+            email=email,
+            password=password,   # (Consider hashing later)
+            fname=fname,
+            lname=lname,
             balance=0.00,
             role="user"
         )
         db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # Catches race condition against the unique index
+            db.session.rollback()
+            flash("That email is already registered. Try logging in instead.", "warning")
+            return render_template("signup.html", fname=fname, lname=lname, email=email)
+
+        flash("Account created. Please sign in.", "success")
         return redirect(url_for("login"))
+
     return render_template("signup.html")
 
 #Log-in Route
