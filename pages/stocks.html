@@ -17,31 +17,32 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-
-        <table class="table table-dark"> 
-            <thead> 
-                <tr> 
-                    <th>Name</th>
-                    <th>Ticker Symbol</th>
-                    <th>Price per stock</th> 
-                    <th>Quantity remaining</th> 
-                </tr> 
-            </thead> 
-            <tbody>
-                {% for stock in stocks %}
-                <tr> 
-                    <td>{{ stock.name }}</td> 
-                    <td>{{ stock.ticker }}</td> 
-                    <td>${{ "%.2f"|format(stock.price) }}</td> 
-                    <td>{{ stock.quantity }}</td> 
-                </tr> 
-                {% else %} 
-                <tr> 
-                    <td colspan="6">The Stock List is empty.</td> 
-                </tr> 
-                {% endfor %} 
-            </tbody> 
-        </table> 
+            <div class="secondary p-4">
+                <table class="table table-striped border-dark"> 
+                    <thead> 
+                        <tr> 
+                            <th>Name</th>
+                            <th>Ticker Symbol</th>
+                            <th>Price per stock</th> 
+                            <th>Quantity remaining</th> 
+                        </tr> 
+                    </thead> 
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr> 
+                            <td>{{ stock.name }}</td> 
+                            <td>{{ stock.ticker }}</td> 
+                            <td>${{ "%.2f"|format(stock.price) }}</td> 
+                            <td>{{ stock.quantity }}</td> 
+                        </tr> 
+                        {% else %} 
+                        <tr> 
+                            <td colspan="6">The Stock List is empty.</td> 
+                        </tr> 
+                        {% endfor %} 
+                    </tbody> 
+                </table>
+            </div> 
         </div>
     </body>
 {% endblock %}

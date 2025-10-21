@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Stock Administration{% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-     <h1>Stock Administration</h1>
-     <a href="{{ url_for('add_stock_page') }}" class="btn btn-success">Add stock</a>
-  </div>
+<div class="container-fluid pt-4" style="padding-left: 5%; padding-right: 5%; max-height: calc(100vh - 120px); height: calc(100vh - 120px); overflow: auto;"> 
+    <h1 class="mb-4">Stock Administration</h1>
+    <a href="{{ url_for('add_stock_page') }}" class="btn btn-success">Add stock</a>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -14,7 +13,7 @@
     {% endif %}
   {% endwith %}
 
-  <div class="table-responsive">
+  <div class="table-responsive mt-4">
     <table class="table table-dark table-striped">
       <thead>
         <tr>

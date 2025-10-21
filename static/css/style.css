@@ -1,6 +1,59 @@
 body {
-  background-color: #121212;
+  background-color: #442d24;
   color: #ffffff;
+}
+
+nav {
+  background-color: #301414;
+  color: #ffffff;
+}
+
+.navbar-brand, .nav-link {
+  color: #ffffff;
+}
+
+.secondary {
+  background-color: #915d4a;
+  color: #ffffff;
+  border: 4px solid #301414;
+}
+
+.primary {
+  background-color: #ddb967;
+}
+
+.tertiary {
+  background-color: #1d1616;
+  color: #ffffff;
+  border: 4px solid #573131;
+}
+
+footer {
+  background-color: #301414;
+  color: #ffffff;
+}
+
+.table-striped>tbody>tr:nth-child(odd)>td, 
+.table-striped>tbody>tr:nth-child(odd)>th {
+   background-color: #46312c;
+   color: white;
+ }
+
+ .table-striped>tbody>tr:nth-child(even)>td, 
+.table-striped>tbody>tr:nth-child(even)>th {
+   background-color: #5e4843;
+   color: white;
+ }
+
+ .table-striped>thead>tr:nth-child(odd)>td, 
+.table-striped>thead>tr:nth-child(odd)>th {
+   background-color: #ddb967;
+ }
+
+ .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited, .btn-outline-primary {
+    background-color: #ddb967 !important;
+    border: #ddb967 !important;
+    color: black;
 }
 
 #home_body {
@@ -8,12 +61,11 @@ body {
   background-image: 
   radial-gradient(
     circle,
-  #121212FF 0%, 
-  #121212CC 30%,
-  #12121200 55%), 
+  #12121277 0%, 
+  #121212BB 30%,
+  #12121200 50%), 
   url(stockimage.png);
   background-size: cover;
-  background-blend-mode: overlay;
 }
 
 

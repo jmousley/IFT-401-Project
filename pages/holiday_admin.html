@@ -14,7 +14,7 @@
     
     <div style="display: flex; justify-content: space-around; align-items: flex-start; height: 100%;" class="mt-5">
 
-        <div class="container bg-dark border border-light rounded-5 p-5" style="flex: 0 0 30%;">
+        <div class="container tertiary rounded-5 p-5" style="flex: 0 0 30%;">
             <h2 class="text-center">Add Holiday</h2>
             <form action="{{ url_for('add_holiday') }}" method="POST">
                 <div class="row justify-content-center">
@@ -49,20 +49,20 @@
             </form>
         </div>
 
-        <div class="container bg-dark border border-light p-5" style="flex: 0 0 50%; height: 100%;">
+        <div class="container tertiary p-5" style="flex: 0 0 50%; height: 100%;">
             <h2 class="text-center mb-4">Current Holiday List:</h2>
             {%  if not holidays  %}
                 <div class="d-flex justify-content-center">
                 <p class="text-center fs-4 mt-3 p-3" style="width: 40rem; background-color: #28282c; border-radius: 30px;">No detected holidays.</p>
                 </div>
               {%  else  %}
-                <div class="table-responsive flex-grow-1" style="overflow: auto; height: 90%;">
-                  <table class="table table-dark table-striped text-center border-bottom border-dark">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Holiday Name</th>
-                        <th>Actions</th>
+                <div class="table-responsive overflow-auto d-flex" style= "height: 90%;">
+                  <table class="table table-striped text-center border-bottom border-dark" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                    <thead style="width: 100%;">
+                      <tr style="width: 100%; padding: 0; margin: 0;">
+                        <th style="width: 35%;">Date</th>
+                        <th style="width: 35%;">Holiday Name</th>
+                        <th style="width: 30%;">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
