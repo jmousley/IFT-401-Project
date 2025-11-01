@@ -139,7 +139,11 @@ def home():
         current_time = check_time()
         user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).order_by(Stock.ticker.asc()).all()
         transaction_summary = db.session.query(Transactions).join(User).join(Stock).order_by(desc(Transactions.date)).limit(10).all()
-        return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio, transaction_summary=transaction_summary)
+        portfolio_value = 0.00
+        for e in user_portfolio:
+            portfolio_value += (e.stock.price * int(e.quantity))
+        portfolio_value = round(portfolio_value, 2)
+        return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio, transaction_summary=transaction_summary,portfolio_value=portfolio_value)
     
     else:
         if not is_market_open() == True: 
@@ -158,6 +162,27 @@ def home():
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+@app.route("/support", methods=["GET", "POST"])
+def support():
+    if request.method == "POST":
+        subject = (request.form.get("subject") or "").strip()
+        title = (request.form.get("title") or "").strip()
+        question = (request.form.get("question") or "").strip()
+
+        if not subject or not title or not question:
+            flash("Please fill all required fields.", "danger")
+            return redirect(url_for("support"))
+        else:
+            #Flash message is not using bootstrap, need to fix later
+            flash(f"Feedback received", "success")
+        return redirect(url_for("support"))
+
+    return render_template("support.html")
 
 @app.route("/stocks")
 def stocks():
@@ -618,8 +643,6 @@ def edit_market_hours():
     db.session.commit()
     flash(f"Updated!", "success")
     return render_template("trading_hours.html")
-
-
 
 #Admin Holiday Management Page
 @app.route('/holiday_admin')

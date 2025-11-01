@@ -28,14 +28,13 @@
           <div class="mb-3 mt-3 secondary d-flex flex-column align-items-start p-3 rounded">
             <h4 class="mb-1">Balance:</h4>
             <h3 class="mb-3">${{ "%.2f"|format(current_user.balance) }}</h3>
-            <button type="submit" class="btn btn-primary">Add funds</button>
+            <a href="{{ url_for('add_funds') }}" class="btn btn-primary">Add funds</a>
           </div>
         </div>
         <div class="col-md-6 pb-3">
           <div class="mb-3 mt-3 secondary d-flex flex-column align-items-start p-3 rounded">
             <h4 class="mb-1">Portfolio Value:</h4>
-            <h3 class="mb-3">$XXXXX.XX</h3>
-            <button type="submit" class="btn btn-primary">Add funds</button>
+            <h3 class="mb-3">${{ '%.2f'|format(portfolio_value) }}</h3>
           </div>
         </div>
       </div>

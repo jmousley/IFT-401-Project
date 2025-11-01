@@ -68,6 +68,27 @@ footer {
   background-size: cover;
 }
 
+.page-contact .home-title {
+  display: inline-block;
+  transform: translateY(-300px);
+  -webkit-transform: translateY(-300px);
+}
+
+.page-support .home-title {
+  display: inline-block;
+  transform: translateY(-100px);
+  -webkit-transform: translateY(-100px);
+}
+
+.left-forms {
+  transform: translateX(-100px);
+  will-change: transform;
+}
+
+.right-forms {
+  transform: translateX(-100px);
+  will-change: transform;
+}
 
 @media (min-width: 900px) { 
   html {

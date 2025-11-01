@@ -33,7 +33,7 @@
  
   .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
 </style>
-<body id="home_body">
+<body id="home_body" class="page-contact">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <ul>
@@ -52,23 +52,6 @@
       <div class="w-100">
         <h1 class="display-4 home-title mb-1">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
         <p class="lead mb-0">This site is under construction.</p>
-      </div>
-
-      
-      <div class="card text-white secondary home-card">
-        <div class="card-body">
-          <h5 class="card-title mb-2">Welcome back</h5>
-          <p class="card-text mb-3">Please log in to gain access to our services.</p>
-          <div class="d-flex justify-content-center gap-2">
-            <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
-            <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
-          </div>
-        </div>
-      </div>
-      
-      <div class="d-grid gap-2 home-card">
-        <a href="{{ url_for('contact') }}" class="btn btn-primary">Contact Us</a>
-        <a href="{{ url_for('support') }}" class="btn" style="background-color: rgb(201, 120, 83);">Support</a>
       </div>
 
     </div>
