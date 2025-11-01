@@ -138,7 +138,8 @@ def home():
             status = "Open"
         current_time = check_time()
         user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).order_by(Stock.ticker.asc()).all()
-        return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio)
+        transaction_summary = db.session.query(Transactions).join(User).join(Stock).order_by(desc(Transactions.date)).limit(10).all()
+        return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio, transaction_summary=transaction_summary)
     
     else:
         if not is_market_open() == True: 

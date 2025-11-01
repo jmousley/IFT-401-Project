@@ -71,11 +71,44 @@
 
     <!-- Right side -->
     <div class="col-md-7">
-      <div class="mb-3 mt-3 secondary p-3 rounded" style="height: 500px;">
-        <h4 class="mb-1">probably site-wite transaction history over here:</h4>
+      <h3>Transaction history</h3>
+      <div class="mb-3 mt-3 secondary p-3 rounded d-flex flex-column" style="height: 500px; padding: 0.75rem;">
+          <div class="flex-grow-1 overflow-auto" style="min-height:0; /* allow flex child to scroll */">
+            <table class="table table-dark table-striped table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Stock</th>
+                  <th>Qty</th>
+                  <th>Type</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if transaction_summary %}
+                  {% for t in transaction_summary %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ t.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ t.user.fname }} {{ t.user.lname }}</td>
+                    <td>{{ t.stock.name }}</td>
+                    <td>{{ t.quantity }}</td>
+                    <td>{{ t.transaction_type }}</td>
+                    <td>${{ '%.2f'|format(t.total_price) }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="7" class="text-center">No recent transactions.</td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
   </div>
-</div>
 
 {% endblock %}
