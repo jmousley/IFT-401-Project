@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container-fluid pt-4" style="padding-left: 5%; padding-right: 5%; max-height: calc(100vh - 120px); height: calc(100vh - 120px); overflow: auto;"> 
     <h1 class="mb-4">Stock Administration</h1>
-    <a href="{{ url_for('add_stock_page') }}" class="btn btn-success">Add stock</a>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -13,36 +12,81 @@
     {% endif %}
   {% endwith %}
 
-  <div class="table-responsive mt-4">
-    <table class="table table-dark table-striped">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Ticker Symbol</th>
-          <th>Price</th>
-          <th>Quantity</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in stocks %}
-        <tr>
-          <td>{{ loop.index }}</td>
-          <td>{{ s.name }}</td>
-          <td>{{ s.ticker }}</td>
-          <td>${{ '%.2f'|format(s.price) }}</td>
-          <td>{{ s.quantity }}</td>
-          <td>
-            <a href="{{ url_for('edit_stock', id=s.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-            <a href="{{ url_for('delete_stock', id=s.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ s.name }}?');">Delete</a>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center">No stocks found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="container secondary p-4" style="margin-left: 10%; margin-right: 10%;">
+    <a href="{{ url_for('add_stock_page') }}" class="btn btn-success">Add stock</a>
+    <div class="table-responsive mt-4">
+      <table class="table border-dark table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Ticker Symbol</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in stocks %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.ticker }}</td>
+            <td>${{ '%.2f'|format(s.price) }}</td>
+            <td>{{ s.quantity }}</td>
+            <td>
+              <a href="{{ url_for('edit_stock', id=s.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <a href="{{ url_for('delete_stock', id=s.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ s.name }}?');">Delete</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center">No stocks found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center custom-pagination">
+          {% if stocks.has_prev %}
+              <li class="page-item">
+              <a class="page-link" href="{{ url_for('stock_admin', page_num=stocks.page - 1) }}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+              </a>
+              </li>
+          {% else %}
+              <li class="page-item disabled">
+              <a class="page-link" href="{{ url_for('stock_admin', page_num=stocks.page - 1) }}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+              </a>
+              </li>
+          {% endif %}
+
+          {% for page in stocks.iter_pages() %}
+              {% if page == current_page %}
+                  <li class="page-item active"><a class="page-link" href="{{ url_for('stock_admin', page_num=page) }}">{{ page }}</a></li>
+              {% else %}
+                  <li class="page-item"><a class="page-link" href="{{ url_for('stock_admin', page_num=page) }}">{{ page }}</a></li>
+              {% endif %}
+          {% endfor %}
+
+          {% if stocks.has_next %}
+              <li class="page-item">
+              <a class="page-link" href="{{ url_for('stock_admin', page_num=stocks.page + 1) }}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+              </a>
+              </li>
+          {% else %}
+              <li class="page-item disabled">
+              <a class="page-link" href="{{ url_for('stock_admin', page_num=stocks.page + 1) }}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+              </a>
+              </li>
+          {% endif %}
+      </ul>
+      </nav>
+
+    
   </div>
 </div>
 {% endblock %}

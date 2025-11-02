@@ -49,14 +49,14 @@
             </form>
         </div>
 
-        <div class="container tertiary p-5" style="flex: 0 0 50%; height: 100%;">
+        <div class="container tertiary p-4" style="flex: 0 0 50%;">
             <h2 class="text-center mb-4">Current Holiday List:</h2>
             {%  if not holidays  %}
                 <div class="d-flex justify-content-center">
                 <p class="text-center fs-4 mt-3 p-3" style="width: 40rem; background-color: #28282c; border-radius: 30px;">No detected holidays.</p>
                 </div>
               {%  else  %}
-                <div class="table-responsive overflow-auto" style= "height: 90%;">
+                <div class="table-responsive overflow-auto">
                   <table class="table table-striped text-center border-bottom border-dark" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead style="width: 100%;">
                       <tr style="width: 100%; padding: 0; margin: 0;">
@@ -79,6 +79,47 @@
                   </table>
                 </div>
               {%  endif  %}
+
+            <nav class="mt-4">
+            <ul class="pagination justify-content-center custom-pagination">
+                {% if holidays.has_prev %}
+                    <li class="page-item">
+                    <a class="page-link" href="{{ url_for('holiday_admin', page_num=holidays.page - 1) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                    <a class="page-link" href="{{ url_for('holiday_admin', page_num=holidays.page - 1) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                    </li>
+                {% endif %}
+
+                {% for page in holidays.iter_pages() %}
+                    {% if page == current_page %}
+                        <li class="page-item active"><a class="page-link" href="{{ url_for('holiday_admin', page_num=page) }}">{{ page }}</a></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('holiday_admin', page_num=page) }}">{{ page }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if holidays.has_next %}
+                    <li class="page-item">
+                    <a class="page-link" href="{{ url_for('holiday_admin', page_num=holidays.page + 1) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                    <a class="page-link" href="{{ url_for('holiday_admin', page_num=holidays.page + 1) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                    </li>
+                {% endif %}
+            </ul>
+            </nav>
+
         </div>
 
     </div>

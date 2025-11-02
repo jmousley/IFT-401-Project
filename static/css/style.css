@@ -1,6 +1,7 @@
 body {
   background-color: #442b24;
   color: #ffffff;
+  padding-bottom: 6vh;
 }
 
 .navbar {
@@ -90,6 +91,29 @@ footer {
   will-change: transform;
 }
 
+.custom-pagination .page-link {
+  background-color: #5e4843;   /* dark gray background */
+  color: #fff;              /* white text */
+  border: none;             /* optional: remove border */
+}
+
+.custom-pagination .page-link:hover {
+  background-color: #46312c;   /* lighter on hover */
+  color: #fff;
+}
+
+.custom-pagination .page-item.active .page-link {
+  background-color: #ddb967;  /* gold for active page */
+  color: #000;
+  border: none;
+}
+
+.custom-pagination .page-item.disabled .page-link {
+  background-color: #46312c;  /* gold for active page */
+  color: #fff;
+  border: none;
+}
+
 /*Circle attributes*/
 .circular-image {
   width: 300px;
@@ -137,11 +161,6 @@ footer {
   height: auto;
   transform: scale(0.7);
 }
-
-
-
-
-
 
 @media (min-width: 900px) { 
   html {

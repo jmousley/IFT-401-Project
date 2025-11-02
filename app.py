@@ -184,30 +184,33 @@ def support():
 
     return render_template("support.html")
 
-@app.route("/stocks")
-def stocks():
-    stocks = Stock.query.order_by(Stock.name.asc()).all()
-    return render_template('stocks.html', stocks=stocks)
+@app.route("/stocks", defaults={'page_num': 1})
+@app.route("/stocks/<int:page_num>")
+def stocks(page_num):
+    stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template('stocks.html', stocks=stocks, current_page=page_num)
 
 @app.route("/login_page")
 def login_page():
     return render_template('login_page.html')
 
-@app.route("/buy")
-def buy():
+@app.route("/buy", defaults={'page_num': 1})
+@app.route("/buy/<int:page_num>")
+def buy(page_num):
     if is_market_open() == False:
         flash("Market is closed!", "danger")
         return redirect(url_for('stocks'))
-    stocks = Stock.query.order_by(Stock.name.asc()).all()
-    return render_template("buy.html", stocks=stocks)
+    stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template("buy.html", stocks=stocks, current_page=page_num)
 
-@app.route("/sell")
-def sell():
+@app.route("/sell", defaults={'page_num': 1})
+@app.route("/sell/<int:page_num>")
+def sell(page_num):
     if is_market_open() == False:
         flash("Market is closed!", "danger")
         return redirect(url_for('stocks'))
-    stocks = Stock.query.order_by(Stock.name.asc()).all()
-    return render_template('sell.html', stocks=stocks)
+    stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template('sell.html', stocks=stocks, current_page=page_num)
 
 @app.route("/trading_hours")
 def trading_hours():
@@ -315,11 +318,11 @@ def confirm_sell():
     #CHECK IF PORTFOLIO HAS ENOUGH STOCK TO PULL FROM; ELSE RETURN TO PAGE
     portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
     if not portfolio_entry:
-        flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
+        flash(f"You do not own at least {quantity:.0f} shares of {stock.name}", "danger")
         return redirect(url_for("stocks"))
     
     elif portfolio_entry.quantity < int(quantity):
-        flash(f"You do not own at least {quantity} shares of {stock.name}", "danger")
+        flash(f"You do not own at least {quantity:.0f} shares of {stock.name}", "danger")
         return redirect(url_for("stocks"))
     
     return render_template(
@@ -487,19 +490,19 @@ def delete_order(id):
 @app.route('/signup', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        # Normalize
+
         email = (request.form.get("email") or "").strip().lower()
         password = request.form.get("password") or ""
         password_confirm = request.form.get("password_confirm") or ""
         fname = (request.form.get("fname") or "").strip()
         lname = (request.form.get("lname") or "").strip()
 
-        # Basic guard (optional)
+
         if not email or not password or not fname or not lname:
             flash("All fields are required.", "danger")
             return render_template("signup.html", fname=fname, lname=lname, email=email)
 
-        # App-level duplicate check (case-insensitive)
+
         existing = User.query.filter(func.lower(User.email) == email).first()
         if existing:
             flash("An account with that email already exists. Please log in or use a different email.", "warning")
@@ -513,7 +516,7 @@ def register():
         # Create user
         user = User(
             email=email,
-            password=password,   # (Consider hashing later)
+            password=password,
             fname=fname,
             lname=lname,
             balance=0.00,
@@ -523,7 +526,6 @@ def register():
         try:
             db.session.commit()
         except IntegrityError:
-            # Catches race condition against the unique index
             db.session.rollback()
             flash("That email is already registered. Try logging in instead.", "warning")
             return render_template("signup.html", fname=fname, lname=lname, email=email)
@@ -551,12 +553,10 @@ def edit_profile():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # Basic validation
         if not first_name or not last_name or not email:
             flash("Please fill in all required fields.", "error")
             return redirect(url_for('edit_profile'))
 
-        # Update fields
         user.fname = first_name
         user.lname = last_name
         user.email = email
@@ -584,7 +584,7 @@ def login():
             return redirect(url_for("home"))
         
         else:
-            flash(f"Error signing in: login invalid", "error")
+            flash(f"Error signing in: login invalid", "danger")
     return render_template("login_page.html")
 
 #Logout Route
@@ -595,15 +595,16 @@ def logout():
     return redirect(url_for("home"))
 
 #stock_admin route
-@app.route('/stock_admin')
+@app.route("/stock_admin", defaults={'page_num': 1})
+@app.route('/stock_admin/<int:page_num>')
 @login_required
-def stock_admin():
+def stock_admin(page_num):
     # optional admin-only check
     if getattr(current_user, "role", None) != "admin":
         flash("Access denied: admin only", "error")
         return redirect(url_for("home"))
-    stocks = Stock.query.order_by(Stock.name.asc()).all()
-    return render_template('stock_admin.html', stocks=stocks)
+    stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template('stock_admin.html', stocks=stocks, current_page=page_num)
 
 #Add Stock Route
 @app.route('/add_stock_page', methods=['GET', 'POST'])
@@ -697,15 +698,16 @@ def edit_market_hours():
     return render_template("trading_hours.html")
 
 #Admin Holiday Management Page
-@app.route('/holiday_admin')
+@app.route("/holiday_admin", defaults={'page_num': 1})
+@app.route('/holiday_admin/<int:page_num>')
 @login_required
-def holiday_admin():
+def holiday_admin(page_num):
     if getattr(current_user, "role", None) != "admin":
         flash("Access denied: admin only.", "error")
         return redirect(url_for('home'))
 
-    holidays = Holidays.query.order_by(Holidays.holiday_date).all()
-    return render_template('holiday_admin.html', holidays=holidays)
+    holidays = Holidays.query.order_by(Holidays.holiday_date).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template('holiday_admin.html', holidays=holidays, current_page=page_num)
 
 @app.route('/add_holiday', methods=['POST'])
 @login_required

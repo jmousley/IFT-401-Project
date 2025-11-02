@@ -2,10 +2,9 @@
 {% block title %}Register{% endblock %}
 {% block content %}
 
-<div class="container min-vh-100 d-flex align-items-center justify-content-center py-4" style="min-height: calc(100vh - 120px);">
+<div class="d-flex justify-content-center align-items-center flex-column" style="min-height: calc(100vh - 120px); padding-bottom: 40px;">
   <div class="w-100" style="max-width: 1000px;">
 
-    {# FLASH ABOVE THE CARD, CENTERED #}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -16,7 +15,8 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-    <div class="container bg-dark border border-light rounded-5 p-5" style="max-width: 700px;">
+
+    <div class="container tertiary rounded-5 p-5" style="max-width: 700px;">
         <h1 class="text-center">Create account</h1>
         <form action="/signup" method="POST">
 

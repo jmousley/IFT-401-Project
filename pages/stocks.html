@@ -6,7 +6,7 @@
     <body>
         <div class="container mt-5">
         <h1>List of Stocks</h1>
-        <div class = "d-flex justify-content-end gap-2 mb-3">
+        <div class = "d-flex justify-content-start gap-2 mb-3 mt-3">
             <a class = "btn btn-primary" href = "/buy">Buy</a>
             <a class = "btn btn-primary" href = "/sell">Sell</a>
         </div> 
@@ -17,7 +17,7 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-            <div class="secondary p-4">
+            <div class="secondary p-4 pb-3">
                 <table class="table table-striped border-dark"> 
                     <thead> 
                         <tr> 
@@ -42,6 +42,47 @@
                         {% endfor %} 
                     </tbody> 
                 </table>
+
+                <nav class="mt-4">
+                <ul class="pagination justify-content-center custom-pagination">
+                    {% if stocks.has_prev %}
+                        <li class="page-item">
+                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page - 1) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page - 1) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                        </li>
+                    {% endif %}
+
+                    {% for page in stocks.iter_pages() %}
+                        {% if page == current_page %}
+                            <li class="page-item active"><a class="page-link" href="{{ url_for('stocks', page_num=page) }}">{{ page }}</a></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('stocks', page_num=page) }}">{{ page }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if stocks.has_next %}
+                        <li class="page-item">
+                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page + 1) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page + 1) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                        </li>
+                    {% endif %}
+                </ul>
+                </nav>
+
             </div> 
         </div>
     </body>
