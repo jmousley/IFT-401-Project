@@ -19,6 +19,9 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('stocks') }}">Stocks</a></li>
+          {% if current_user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">Profile</a></li>
+          {% endif %}
         </ul>
       </div>
     </div>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+
+<div class="container py-4 tertiary mt-5 p-3">
+  <h2>User Information</h2>
+    <div class="row mb-3 align-items-center mt-5">
+      <div class="col-md-3 fw-bold">First Name:</div>
+      <div class="col-md-6">{{ user.fname }}</div>
+      <div class="col-md-3 text-end">
+      </div>
+    </div>
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-3 fw-bold">Last Name:</div>
+      <div class="col-md-6">{{ user.lname }}</div>
+      <div class="col-md-3 text-end">
+      </div>
+    </div>
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-3 fw-bold">Email:</div>
+      <div class="col-md-6">{{ user.email }}</div>
+      <div class="col-md-3 text-end">
+      </div>
+    </div>
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-3 fw-bold">Password:</div>
+      <div class="col-md-6">*****</div>
+      <div class="col-md-3 text-end">
+      </div>
+    </div>
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-3 fw-bold">Balance:</div>
+      <div class="col-md-6">${{ "%.2f"|format(user.balance) }}</div>
+      <div class="col-md-3 text-end">
+      </div>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('edit_profile') }}">Edit</a>
+</div>
+{% endblock %}

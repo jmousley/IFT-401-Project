@@ -533,6 +533,47 @@ def register():
 
     return render_template("signup.html")
 
+#Display User Profile
+@app.route("/profile")
+@login_required
+def profile():
+    return render_template("profile.html", user=current_user)
+
+#Edit user profile
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    user = current_user 
+
+    if request.method == 'POST':
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Basic validation
+        if not first_name or not last_name or not email:
+            flash("Please fill in all required fields.", "error")
+            return redirect(url_for('edit_profile'))
+
+        # Update fields
+        user.fname = first_name
+        user.lname = last_name
+        user.email = email
+        user.password = password
+        password_confirm = request.form.get("password_confirm") or ""
+
+        if password != password_confirm:
+            flash("Passwords do not match.", "danger")
+            return render_template("edit_profile.html", fname=first_name, lname=last_name, email=email, user=user)
+
+        db.session.commit()
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for('edit_profile'))
+
+    return render_template("edit_profile.html", user=user)
+
+
 #Log-in Route
 @app.route('/login', methods=["GET", "POST"])
 def login():
