@@ -36,11 +36,12 @@
 <body id="home_body" class="page-support">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <ul>
-      {% for category, message in messages %}
-        <li class="{{ category }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
+    {% for category, message in messages %}
+      <div class="alert alert-{{ 'warning' if category == 'warning' else category }} alert-dismissible fade show mb-3" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
   {% endif %}
 {% endwith %}
 
@@ -53,6 +54,7 @@
       <h1 class="display-4 home-title mb-1">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
        <form method="post" action="{{ url_for('support') }}">
          <div class="row gy-4 align-items-start mt-3">
+          <!-- smaller forms on left side-->
            <div class="col-lg-6 left-forms">
              <div class="d-flex flex-column gap-4">
                <h5 class="mb-2">Email Address</h5>
@@ -72,7 +74,7 @@
              </div>
            </div>
 
-           <!-- big form on the right -->
+           <!-- big form on the right (Didn't have to move) -->
            <div class="col-lg-6">
              <div class="d-flex flex-column gap-4">
                  <h5 class="mb-2">Questions and Any Additional Comments</h5>

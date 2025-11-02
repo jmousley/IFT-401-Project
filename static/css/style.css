@@ -90,6 +90,59 @@ footer {
   will-change: transform;
 }
 
+/*Circle attributes*/
+.circular-image {
+  width: 300px;
+  height: 295px;
+  border-radius: 50%;
+  overflow: hidden;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  margin: 0 auto;
+  object-position: -200px -30px;
+
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.circular-image2 {
+  width: 300px;
+  height: 295px;
+  border-radius: 50%;
+  overflow: hidden;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  margin: 0 auto;
+  object-position: -500px -30px;
+
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/*Adjustments for the images within the circle*/
+#img1 {
+  position: absolute;
+  top: -140px;
+  left: -60px;
+  width: 420px;
+  height: auto;
+  transform: scale(0.7);
+}
+
+#img2 {
+  position: absolute;
+  top: -140px;
+  left: -60px;
+  width: 420px;
+  height: auto;
+  transform: scale(0.7);
+}
+
+
+
+
+
+
 @media (min-width: 900px) { 
   html {
     font-size: 0.60rem;

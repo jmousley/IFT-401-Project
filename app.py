@@ -490,6 +490,7 @@ def register():
         # Normalize
         email = (request.form.get("email") or "").strip().lower()
         password = request.form.get("password") or ""
+        password_confirm = request.form.get("password_confirm") or ""
         fname = (request.form.get("fname") or "").strip()
         lname = (request.form.get("lname") or "").strip()
 
@@ -503,6 +504,11 @@ def register():
         if existing:
             flash("An account with that email already exists. Please log in or use a different email.", "warning")
             return render_template("signup.html", fname=fname, lname=lname, email=email)
+        
+        if password != password_confirm:
+            flash("Passwords do not match.", "danger")
+            return render_template("signup.html", fname=fname, lname=lname, email=email)
+        
 
         # Create user
         user = User(
@@ -581,6 +587,11 @@ def add_stock_page():
 
         if not name or not ticker or price is None or quantity is None:
             flash("Please fill all fields correctly.", "error")
+            return redirect(url_for("add_stock_page"))
+        
+        existing_stock = Stock.query.filter_by(ticker=ticker).first()
+        if existing_stock:
+            flash(f"A stock with ticker '{ticker}' already exists.", "danger")
             return redirect(url_for("add_stock_page"))
 
         new_stock = Stock(name=name, price=price, quantity=quantity, ticker=ticker)

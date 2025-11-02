@@ -34,28 +34,40 @@
   .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
 </style>
 <body id="home_body" class="page-contact">
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul>
-      {% for category, message in messages %}
-        <li class="{{ category }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
 
-<div class="container">
-  <div class="home-viewport">
-    <div class="home-stack">
+<div class="container py-5">
+  <div class="row left-items-center">
+    <!-- Left Column: Text -->
+    <div class="col-md-6 right-forms">
+      <h2 class="home-title mb-4">Get in Touch</h2>
+      <h1 class="mb-3">Joseph Ousley</h1>
+      <ul>
+        <li>Email: jmously@asu.edu</li>
+        <li>Phone: (123) 456-7890</li>
+        <li>Location: Mesa, AZ</li>
+      </ul> 
+      <h1 class="mb-3">Allen Pestka</h1>
+      <ul>
+        <li>Email: ajpestka@asu.edu</li>
+        <li>Phone: (123) 456-7890</li>
+        <li>Location: Goodyear, AZ</li>
+      </ul> 
 
-      
-      <div class="w-100">
-        <h1 class="display-4 home-title mb-1">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
-        <p class="lead mb-0">This site is under construction.</p>
+    </div>
+
+    <!-- Right Column: Image -->
+    <div class="col-md-6 right-forms text-center circular-image">
+      <!--Joseph image-->
+      <div class="circular-image">
+        <img id="img1" src="{{ url_for('static', filename='placeholder.png') }}">
       </div>
-
+      <!--Allen image-->
+      <div class="circular-image2">
+        <img id="img2" src="{{ url_for('static', filename='labubu.png') }}" height="200">
+      </div>
     </div>
   </div>
 </div>
+
 </body>
 {% endblock %}
