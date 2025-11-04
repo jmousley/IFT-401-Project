@@ -457,21 +457,6 @@ def delete_holiday(name):
         flash(f'Error deleting holiday: {str(e)}', 'error')
     return redirect(url_for('holiday_admin'))
 
-
-#User
-@app.route('/delete_user/<int:id>')
-def delete_user(id):
-    user = User.query.get_or_404(id)
-    try:
-        db.session.delete(user)
-        db.session.commit()
-        flash(f'User {user.email} deleted successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting user: {str(e)}', 'error')
-    return redirect(url_for('stocks'))
-
-
 #Order
 @app.route('/delete_order/<int:id>')
 def delete_order(id):
@@ -548,6 +533,8 @@ def edit_profile():
     user = current_user 
 
     if request.method == 'POST':
+        id = request.form.get('user_id')
+        user = User.query.get_or_404(id)
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         email = request.form.get('email')
@@ -566,13 +553,58 @@ def edit_profile():
         if password != password_confirm:
             flash("Passwords do not match.", "danger")
             return render_template("edit_profile.html", fname=first_name, lname=last_name, email=email, user=user)
-
+  
         db.session.commit()
         flash("Profile updated successfully.", "success")
         return redirect(url_for('edit_profile'))
 
     return render_template("edit_profile.html", user=user)
 
+
+#Edit Profile_admin
+@app.route('/edit_profile_admin', methods=['POST'])
+@login_required
+def edit_profile_admin():
+    id = request.form.get('user_id')
+    user = User.query.get_or_404(id)
+    return render_template("edit_profile.html", user=user)
+
+#Delete User Profie
+@app.route('/delete_profile', methods=['POST'])
+@login_required
+def delete_profile():
+    id = request.form.get('user_id')
+    user = User.query.get_or_404(id)
+    user_portfolio = db.session.query(Portfolio).filter(Portfolio.user_id == user.id).all()
+    user_transaction = db.session.query(Transactions).filter(Transactions.user_id == user.id).all()
+    try:
+        for user_portfolio in user_portfolio:
+            db.session.delete(user_portfolio)
+        for user_transaction in user_transaction:
+            db.session.delete(user_transaction)
+        db.session.delete(user)
+        db.session.commit()
+        flash("Profile deleted successfully. Thank you for using Increadibly Realistic Cool Stock Trader!", "success")
+        return redirect(url_for('home'))
+    
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting profile: {str(e)}", "danger")
+        return redirect(url_for('profile'))
+
+
+    
+#Admin User Overview
+@app.route("/user_overview", defaults={'page_num': 1})
+@app.route('/user_overview/<int:page_num>')
+@login_required
+def user_overview (page_num):
+    # optional admin-only check
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for("home"))
+    users = User.query.order_by(User.email.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template('user_overview.html', users=users, current_page=page_num)
 
 #Log-in Route
 @app.route('/login', methods=["GET", "POST"])
@@ -684,7 +716,6 @@ def edit_stock(id):
             flash(f"Error updating stock: {str(e)}", "error")
             return redirect(url_for('edit_stock_page', id=id))
 
-    # GET -> show form pre-filled
     return render_template('edit_stock_page.html', stock=stock)
 
 #Edit Market Hours

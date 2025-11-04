@@ -138,6 +138,7 @@ footer {
   object-position: center;
   display: block;
   margin: 0 auto;
+  margin-top: 100px;
   object-position: -500px -30px;
 
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
@@ -146,8 +147,8 @@ footer {
 /*Adjustments for the images within the circle*/
 #img1 {
   position: absolute;
-  top: -140px;
-  left: -60px;
+  top: -110px;
+  left: -20px;
   width: 420px;
   height: auto;
   transform: scale(0.7);
@@ -155,7 +156,7 @@ footer {
 
 #img2 {
   position: absolute;
-  top: -140px;
+  top: -100px;
   left: -60px;
   width: 420px;
   height: auto;

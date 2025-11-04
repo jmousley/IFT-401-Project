@@ -14,14 +14,15 @@
   {% endwith %}
 
   <form method="POST" action="{{ url_for('edit_profile') }}">
+    <input type="hidden" name="user_id" value="{{ user.id }}">
     <div class="mb-3">
       <label class="form-label">First Name</label>
-      <input class="form-control" name="first_name" value="{{ user.first_name }}" required />
+      <input class="form-control" name="first_name" value="{{ user.fname }}" required />
     </div>
 
     <div class="mb-3">
       <label class="form-label">Last Name</label>
-      <input class="form-control" name="last_name" value="{{ user.last_name }}" required />
+      <input class="form-control" name="last_name" value="{{ user.lname }}" required />
     </div>
 
     <div class="mb-3">
