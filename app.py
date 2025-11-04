@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 app = Flask(__name__, template_folder="pages")
 
 #SQL Config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/project_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:password@db-stock-site.czo8iw8oiaef.us-east-2.rds.amazonaws.com/project_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 
