@@ -7,6 +7,7 @@ from datetime import time, datetime
 from sqlalchemy import desc
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
+import pytz
 
 
 app = Flask(__name__, template_folder="pages")
@@ -93,17 +94,23 @@ scheduler = BackgroundScheduler(daemon=True)
 scheduler.add_job(stock_randomize, 'interval', seconds=30)
 scheduler.start()
 
+#this variable determines what timezone the database will reference/display for most functions. currently statically set.
+timezone = "MST"
+
 #getting current date + time
 def check_time():
-    current_datetime = datetime.now()
+    utc_datetime = datetime.now(pytz.utc)
+    #set timezone the rest of the function compares to
+    current_datetime = utc_datetime.astimezone(pytz.timezone(timezone))
     formatted_time = current_datetime.strftime("%I:%M %p")
     return formatted_time
 
 #check if market is open based on local time
 def is_market_open():
-    now = datetime.now()
-    current_day = now.strftime("%A")
+    utc_now = datetime.now(pytz.utc)
+    now = utc_now.astimezone(pytz.timezone(timezone))
     current_time = now.time()
+    current_day = now.strftime("%A")
 
     holiday_today = Holidays.query.filter_by(holiday_date=now.date()).first()
     if holiday_today:
@@ -139,11 +146,22 @@ def home():
         current_time = check_time()
         user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).order_by(Stock.ticker.asc()).all()
         transaction_summary = db.session.query(Transactions).join(User).join(Stock).order_by(desc(Transactions.date)).limit(10).all()
+
+        for t in transaction_summary:
+            t.date = pytz.utc.localize(t.date)
+            t.date = t.date.astimezone(pytz.timezone(timezone))
+
         portfolio_value = 0.00
         for e in user_portfolio:
             portfolio_value += (e.stock.price * int(e.quantity))
         portfolio_value = round(portfolio_value, 2)
-        return render_template("dash_admin.html", current_time=current_time, status=status, user_portfolio=user_portfolio, transaction_summary=transaction_summary,portfolio_value=portfolio_value)
+        return render_template("dash_admin.html", 
+                               current_time=current_time, 
+                               status=status, 
+                               user_portfolio=user_portfolio, 
+                               transaction_summary=transaction_summary,
+                               portfolio_value=portfolio_value,
+                               timezone=timezone)
     
     else:
         if not is_market_open() == True: 
@@ -153,11 +171,22 @@ def home():
         current_time = check_time()
         user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0).order_by(Stock.ticker.asc()).all()
         transaction_summary = db.session.query(Transactions).join(Stock).filter(Transactions.user_id == current_user.id).order_by(desc(Transactions.date)).limit(15).all()
+        
+        for t in transaction_summary:
+            t.date = pytz.utc.localize(t.date)
+            t.date = t.date.astimezone(pytz.timezone(timezone))
+
         portfolio_value = 0.00
         for e in user_portfolio:
             portfolio_value += (e.stock.price * int(e.quantity))
         portfolio_value = round(portfolio_value, 2)
-        return render_template("dash_user.html", current_time=current_time, status=status, user_portfolio=user_portfolio, portfolio_value=portfolio_value, transaction_summary = transaction_summary)
+        return render_template("dash_user.html", 
+                               current_time=current_time, 
+                               status=status, 
+                               user_portfolio=user_portfolio, 
+                               portfolio_value=portfolio_value, 
+                               transaction_summary = transaction_summary,
+                               timezone=timezone)
 
 @app.route("/about")
 def about():
@@ -293,11 +322,12 @@ def buy_stock():
         db.session.add(portfolio_entry)
 
     #add entry to Transactions table
+
     new_transaction = Transactions(
         user_id=user.id, 
         stock_id=stock.id, 
         quantity=quantity,
-        date = datetime.now(),
+        date = datetime.now(pytz.utc),
         total_price = total_price,
         transaction_type = 'buy'
     )
@@ -366,7 +396,7 @@ def sell_stock():
         user_id=user.id, 
         stock_id=stock.id, 
         quantity=quantity,
-        date = datetime.now(),
+        date = datetime.now(pytz.utc),
         total_price = total_price,
         transaction_type = 'sell'
     )
