@@ -95,7 +95,7 @@ scheduler.add_job(stock_randomize, 'interval', seconds=30)
 scheduler.start()
 
 #this variable determines what timezone the database will reference/display for most functions. currently statically set.
-timezone = "UTC"
+timezone = "MST"
 
 #getting current date + time
 def check_time():
@@ -218,6 +218,19 @@ def support():
 def stocks(page_num):
     stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
     return render_template('stocks.html', stocks=stocks, current_page=page_num)
+
+@app.route("/search", defaults={'page_num': 1})
+@app.route("/search/<int:page_num>")
+def search(page_num):
+    q = request.args.get("q")
+    print(q)
+
+    if q:
+        stocks = Stock.query.filter(Stock.name.icontains(q) | Stock.ticker.icontains(q)).order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    else:
+        stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    
+    return render_template('_search_results.html', stocks=stocks, current_page=page_num)
 
 @app.route("/login_page")
 def login_page():

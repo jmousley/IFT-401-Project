@@ -1,0 +1,55 @@
+<nav id="pagination" hx-swap-oob="innerHTML">
+    <ul class="pagination justify-content-center custom-pagination">
+
+        {% if stocks.has_prev %}
+            <li class="page-item">
+                <a class="page-link"
+                hx-get="{{ url_for('search', page_num=stocks.page - 1) }}?q={{ request.args.get('q','') }}"
+                hx-target="#stock_list"
+                hx-swap="innerHTML">
+                    &laquo;
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+            <a class="page-link" href="{{ url_for('search', page_num=stocks.page - 1) }}?q={{ request.args.get('q','') }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+            </li>
+        {% endif %}
+
+        {% for page in stocks.iter_pages() %}
+            {% if page == stocks.page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link"
+                       hx-get="{{ url_for('search', page_num=page) }}?q={{ request.args.get('q','') }}"
+                       hx-target="#stock_list"
+                       hx-swap="innerHTML">
+                        {{ page }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if stocks.has_next %}
+        <li class="page-item">
+            <a class="page-link"
+               hx-get="{{ url_for('search', page_num=stocks.next_num) }}?q={{ request.args.get('q','') }}"
+               hx-target="#stock_list"
+               hx-swap="innerHTML">
+                &raquo;
+            </a>
+        </li>
+        {% else %}
+            <li class="page-item disabled">
+            <a class="page-link" href="{{ url_for('search', page_num=stocks.page + 1) }}?q={{ request.args.get('q','') }}" aria-label="Previous">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>

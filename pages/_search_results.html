@@ -1,0 +1,30 @@
+{% if not stocks.items %}
+    <div class="d-flex justify-content-center">
+        <p class="text-center mt-5 mb-5 p-3" style=" width: 30%; font-weight: 600; font-size: 1.5rem; background-color: #ddb967; color: black;">No relevant results found!</p>
+    </div>
+
+{% else %}
+    <table class="table table-striped border-dark" id="stock_list"> 
+        <thead> 
+            <tr> 
+            <th>Name</th>
+            <th>Ticker Symbol</th>
+            <th>Price per stock</th> 
+            <th>Quantity remaining</th> 
+            </tr> 
+        </thead> 
+        <tbody>
+            {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock.name }}</td>
+                    <td>{{ stock.ticker }}</td>
+                    <td>${{ "%.2f"|format(stock.price) }}</td>
+                    <td>{{ stock.quantity }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endif %}
+
+{% include '_pagination.html' %}
