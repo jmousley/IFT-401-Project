@@ -254,7 +254,7 @@ def search(page_num):
     else:
         stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
     
-    return render_template('_search_results.html', stocks=stocks, current_page=page_num)
+    return render_template('_search_results.html', stocks=stocks, current_page=page_num, format_num=format_num)
 
 @app.route("/login_page")
 def login_page():

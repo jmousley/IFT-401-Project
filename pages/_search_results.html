@@ -19,7 +19,7 @@
                     <td>{{ stock.name }}</td>
                     <td>{{ stock.ticker }}</td>
                     <td>${{ "%.2f"|format(stock.price) }}</td>
-                    <td>{{ stock.volume }}</td>
+                    <td>{{ (format_num(s.volume)) }}</td>
                 </tr>
             {% endfor %}
         </tbody>
