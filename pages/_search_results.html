@@ -10,16 +10,16 @@
             <th>Name</th>
             <th>Ticker Symbol</th>
             <th>Price per stock</th> 
-            <th>Quantity remaining</th> 
+            <th>Volume</th> 
             </tr> 
         </thead> 
         <tbody>
-            {% for stock in stocks %}
+            {% for stock in stocks.items %}
                 <tr>
                     <td>{{ stock.name }}</td>
                     <td>{{ stock.ticker }}</td>
                     <td>${{ "%.2f"|format(stock.price) }}</td>
-                    <td>{{ stock.volume }}</td>
+                    <td>{{ (format_num(stock.volume)) }}</td>
                 </tr>
             {% endfor %}
         </tbody>
