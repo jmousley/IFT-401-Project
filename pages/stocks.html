@@ -2,6 +2,7 @@
 {% block title %}Stock List{% endblock %}
 {% block content %}
 <title>Stock List</title>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
 </head>
     <body>
         <div class="container mt-5">
@@ -18,70 +19,75 @@
             {% endif %}
         {% endwith %}
             <div class="secondary p-4 pb-3">
-                <table class="table table-striped border-dark"> 
-                    <thead> 
-                        <tr> 
-                            <th>Name</th>
-                            <th>Ticker Symbol</th>
-                            <th>Price per stock</th> 
-                            <th>Quantity remaining</th> 
-                        </tr> 
-                    </thead> 
-                    <tbody>
-                        {% for stock in stocks %}
-                        <tr> 
-                            <td>{{ stock.name }}</td> 
-                            <td>{{ stock.ticker }}</td> 
-                            <td>${{ "%.2f"|format(stock.price) }}</td> 
-                            <td>{{ stock.quantity }}</td> 
-                        </tr> 
-                        {% else %} 
-                        <tr> 
-                            <td colspan="6">The Stock List is empty.</td> 
-                        </tr> 
-                        {% endfor %} 
-                    </tbody> 
-                </table>
+                <div class="search-container mb-3">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" class="transparent-input" placeholder="Search..." name="q" hx-get="/search" hx-trigger="keyup changed delay:550ms" hx-target="#stock_list">
+                </div>
 
-                <nav class="mt-4">
-                <ul class="pagination justify-content-center custom-pagination">
-                    {% if stocks.has_prev %}
-                        <li class="page-item">
-                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page - 1) }}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page - 1) }}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                        </li>
-                    {% endif %}
+                    <table class="table table-striped border-dark" id="stock_list"> 
+                        <thead> 
+                            <tr> 
+                                <th>Name</th>
+                                <th>Ticker Symbol</th>
+                                <th>Price per stock</th> 
+                                <th>Volume</th> 
+                            </tr> 
+                        </thead> 
+                        <tbody>
+                            {% for stock in stocks %}
+                            <tr> 
+                                <td>{{ stock.name }}</td> 
+                                <td>{{ stock.ticker }}</td> 
+                                <td>${{ "%.2f"|format(stock.price) }}</td> 
+                                <td>{{ (format_num(stock.volume)) }}</td> 
+                            </tr> 
+                            {% else %} 
+                            <tr> 
+                                <td colspan="6">The Stock List is empty.</td> 
+                            </tr> 
+                            {% endfor %} 
+                        </tbody> 
+                    </table>
 
-                    {% for page in stocks.iter_pages() %}
-                        {% if page == current_page %}
-                            <li class="page-item active"><a class="page-link" href="{{ url_for('stocks', page_num=page) }}">{{ page }}</a></li>
+                    <nav class="mt-4" id="pagination">
+                    <ul class="pagination justify-content-center custom-pagination">
+                        {% if stocks.has_prev %}
+                            <li class="page-item">
+                            <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page - 1) }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                            </li>
                         {% else %}
-                            <li class="page-item"><a class="page-link" href="{{ url_for('stocks', page_num=page) }}">{{ page }}</a></li>
+                            <li class="page-item disabled">
+                            <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page - 1) }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                            </li>
                         {% endif %}
-                    {% endfor %}
 
-                    {% if stocks.has_next %}
-                        <li class="page-item">
-                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page + 1) }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                        <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page + 1) }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                        </li>
-                    {% endif %}
-                </ul>
-                </nav>
+                        {% for page in stocks.iter_pages() %}
+                            {% if page == current_page %}
+                                <li class="page-item active"><a class="page-link" href="{{ url_for('stocks', page_num=page) }}">{{ page }}</a></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('stocks', page_num=page) }}">{{ page }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if stocks.has_next %}
+                            <li class="page-item">
+                            <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page + 1) }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                            <a class="page-link" href="{{ url_for('stocks', page_num=stocks.page + 1) }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    </nav>
 
             </div> 
         </div>

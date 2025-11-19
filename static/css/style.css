@@ -95,6 +95,7 @@ footer {
   background-color: #5e4843;   /* dark gray background */
   color: #fff;              /* white text */
   border: none;             /* optional: remove border */
+  cursor: pointer;
 }
 
 .custom-pagination .page-link:hover {
@@ -112,6 +113,7 @@ footer {
   background-color: #46312c;  /* gold for active page */
   color: #fff;
   border: none;
+  cursor: default;
 }
 
 /*Circle attributes*/
@@ -144,7 +146,6 @@ footer {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-/*Adjustments for the images within the circle*/
 #img1 {
   position: absolute;
   top: -110px;
@@ -161,6 +162,43 @@ footer {
   width: 420px;
   height: auto;
   transform: scale(0.7);
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    height: 50px;
+    border-radius: 30px;
+    padding-left: 35px;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    top: 50%;
+    left: 1%;
+    transform: translateY(-50%);
+    color: white;
+}
+
+.transparent-input {
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0);
+  padding-left: 4%;
+  border: none;
+  border-bottom: 3px solid #301414;
+  color: white;
+}
+
+.transparent-input::placeholder {
+  color: rgb(190, 190, 190);
+}
+
+.transparent-input:focus {
+  outline: none;
 }
 
 @media (min-width: 900px) { 

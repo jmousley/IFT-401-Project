@@ -28,7 +28,7 @@ class Stock(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     ticker = db.Column(db.String(5), nullable=False, unique=True)
     price = db.Column(db.Float, nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
+    volume = db.Column(db.Integer, nullable=False)
     transactions = db.relationship('Transactions', backref='stock')
     portfolio_entries = db.relationship('Portfolio', backref='stock')
 
@@ -124,6 +124,30 @@ def is_market_open():
         return True
     return False
 
+#format large numbers (using this for volume specifically) to readable strings like 5k
+def format_num(n):
+    n = int(n)
+    if 0 < n < 1000:
+        return n
+    elif 1000 <= n < 999999:
+        n /= 1000
+        n = round(n, 2)
+        if n % 1 == 0:
+            n = int(n)
+        return str(n) + "k"
+    elif 1000000 <= n < 999999999:
+        n /= 1000000
+        n = round(n, 2)
+        if n % 1 == 0:
+            n = int(n)
+        return str(n) + "M"
+    elif n > 1000000000:
+        n /= 1000000000
+        n = round(n, 2)
+        if n % 1 == 0:
+            n = int(n)
+        return str(n) + "B"
+
 # Create tables
 with app.app_context():
     #db.drop_all()
@@ -217,7 +241,20 @@ def support():
 @app.route("/stocks/<int:page_num>")
 def stocks(page_num):
     stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
-    return render_template('stocks.html', stocks=stocks, current_page=page_num)
+    return render_template('stocks.html', stocks=stocks, current_page=page_num, format_num=format_num)
+
+@app.route("/search", defaults={'page_num': 1})
+@app.route("/search/<int:page_num>")
+def search(page_num):
+    q = request.args.get("q")
+    print(q)
+
+    if q:
+        stocks = Stock.query.filter(Stock.name.icontains(q) | Stock.ticker.icontains(q)).order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    else:
+        stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    
+    return render_template('_search_results.html', stocks=stocks, current_page=page_num)
 
 @app.route("/login_page")
 def login_page():
@@ -230,7 +267,7 @@ def buy(page_num):
         flash("Market is closed!", "danger")
         return redirect(url_for('stocks'))
     stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
-    return render_template("buy.html", stocks=stocks, current_page=page_num)
+    return render_template("buy.html", stocks=stocks, current_page=page_num, format_num=format_num)
 
 @app.route("/sell", defaults={'page_num': 1})
 @app.route("/sell/<int:page_num>")
@@ -239,7 +276,9 @@ def sell(page_num):
         flash("Market is closed!", "danger")
         return redirect(url_for('stocks'))
     stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
-    return render_template('sell.html', stocks=stocks, current_page=page_num)
+    user_portfolio = db.session.query(Portfolio).join(Stock).filter(Portfolio.user_id == current_user.id, Portfolio.quantity > 0)\
+    .order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
+    return render_template('sell.html', stocks=stocks, current_page=page_num, user_portfolio=user_portfolio)
 
 @app.route("/trading_hours")
 def trading_hours():
@@ -380,6 +419,8 @@ def sell_stock():
 
     portfolio_entry = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
     portfolio_entry.quantity -= int(quantity)
+    if portfolio_entry.quantity <= 0:
+        db.session.delete(portfolio_entry)
 
     try:
          user.balance += total_price
@@ -666,7 +707,7 @@ def stock_admin(page_num):
         flash("Access denied: admin only", "error")
         return redirect(url_for("home"))
     stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
-    return render_template('stock_admin.html', stocks=stocks, current_page=page_num)
+    return render_template('stock_admin.html', stocks=stocks, current_page=page_num, format_num=format_num)
 
 #Add Stock Route
 @app.route('/add_stock_page', methods=['GET', 'POST'])
@@ -685,11 +726,11 @@ def add_stock_page():
         except (TypeError, ValueError):
             price = None
         try:
-            quantity = int(request.form.get("quantity", 0))
+            volume = int(request.form.get("quantity", 0))
         except (TypeError, ValueError):
-            quantity = None
+            volume = None
 
-        if not name or not ticker or price is None or quantity is None:
+        if not name or not ticker or price is None or volume is None:
             flash("Please fill all fields correctly.", "error")
             return redirect(url_for("add_stock_page"))
         
@@ -698,7 +739,7 @@ def add_stock_page():
             flash(f"A stock with ticker '{ticker}' already exists.", "danger")
             return redirect(url_for("add_stock_page"))
 
-        new_stock = Stock(name=name, price=price, quantity=quantity, ticker=ticker)
+        new_stock = Stock(name=name, price=price, volume=volume, ticker=ticker)
         db.session.add(new_stock)
         db.session.commit()
         flash(f"Stock '{name}' added.", "success")
@@ -724,17 +765,17 @@ def edit_stock(id):
         except (TypeError, ValueError):
             price = None
         try:
-            quantity = int(request.form.get('quantity', 0))
+            volume = int(request.form.get('quantity', 0))
         except (TypeError, ValueError):
-            quantity = None
+            volume = None
 
-        if not name or not ticker or price is None or quantity is None:
+        if not name or not ticker or price is None or volume is None:
             flash("Please fill all fields correctly.", "error")
             return redirect(url_for('edit_stock_page', id=id))
 
         stock.name = name
         stock.price = price
-        stock.quantity = quantity
+        stock.volume = volume
         stock.ticker = ticker
 
         try:
