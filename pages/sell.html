@@ -12,20 +12,20 @@
                         <th>Select</th>
                         <th>Stock Name</th>
                         <th>Ticker Symbol</th>
+                        <th>Quantity</th>
                         <th>Stock price</th> 
-                        <th>Status</th> 
                     </tr> 
                 </thead> 
                 <tbody>
-                    {% for stock in stocks %}
+                    {% for x in user_portfolio %}
                     <tr> 
                         <td>
-                            <input class="form-check-input" type="radio" name="stock_id" value="{{ stock.id }}" style="position:relative;left:7%;" required>
+                            <input class="form-check-input" type="radio" name="stock_id" value="{{ x.stock.id }}" style="position:relative;left:7%;" required>
                         </td>
-                        <td>{{stock.name}}</td> 
-                        <td>{{stock.ticker}}</td> 
-                        <td>${{"%.2f"|format(stock.price)}}</td> 
-                        <td>Available</td>
+                        <td>{{ x.stock.name }}</td> 
+                        <td>{{ x.stock.ticker }}</td>
+                        <td>{{ x.quantity }}</td>
+                        <td>${{  "%.2f"|format(x.stock.price)  }}</td>
                     </tr> 
                     {% else %} 
                     <tr> 
@@ -38,21 +38,21 @@
 
             <nav class="mt-4">
             <ul class="pagination justify-content-center custom-pagination">
-                {% if stocks.has_prev %}
+                {% if user_portfolio.has_prev %}
                     <li class="page-item">
-                    <a class="page-link" href="{{ url_for('sell', page_num=stocks.page - 1) }}" aria-label="Previous">
+                    <a class="page-link" href="{{ url_for('sell', page_num=user_portfolio.page - 1) }}" aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                     </li>
                 {% else %}
                     <li class="page-item disabled">
-                    <a class="page-link" href="{{ url_for('sell', page_num=stocks.page - 1) }}" aria-label="Previous">
+                    <a class="page-link" href="{{ url_for('sell', page_num=user_portfolio.page - 1) }}" aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                     </li>
                 {% endif %}
 
-                {% for page in stocks.iter_pages() %}
+                {% for page in user_portfolio.iter_pages() %}
                     {% if page == current_page %}
                         <li class="page-item active"><a class="page-link" href="{{ url_for('sell', page_num=page) }}">{{ page }}</a></li>
                     {% else %}
@@ -60,15 +60,15 @@
                     {% endif %}
                 {% endfor %}
 
-                {% if stocks.has_next %}
+                {% if user_portfolio.has_next %}
                     <li class="page-item">
-                    <a class="page-link" href="{{ url_for('sell', page_num=stocks.page + 1) }}" aria-label="Next">
+                    <a class="page-link" href="{{ url_for('sell', page_num=user_portfolio.page + 1) }}" aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                     </li>
                 {% else %}
                     <li class="page-item disabled">
-                    <a class="page-link" href="{{ url_for('sell', page_num=stocks.page + 1) }}" aria-label="Next">
+                    <a class="page-link" href="{{ url_for('sell', page_num=user_portfolio.page + 1) }}" aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                     </li>
