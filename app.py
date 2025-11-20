@@ -67,6 +67,13 @@ class Holidays(db.Model):
     name = db.Column(db.String(100), primary_key=True)
     holiday_date = db.Column(db.Date, nullable=False)
 
+class SupportMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150))
+    name = db.Column(db.String(150))
+    subject = db.Column(db.String(255))
+    message = db.Column(db.Text)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.now(pytz.utc))
 # Flask-Login setup
 @login_manager.user_loader
 def load_user(user_id):
@@ -226,16 +233,34 @@ def support():
         subject = (request.form.get("subject") or "").strip()
         title = (request.form.get("title") or "").strip()
         question = (request.form.get("question") or "").strip()
+        message_text = (request.form.get("message") or "").strip()
 
         if not subject or not title or not question:
-            flash("Please fill all required fields.", "danger")
-            return redirect(url_for("support"))
+            flash("Please fill out all required fields.", "warning")
         else:
-            #Flash message is not using bootstrap, need to fix later
-            flash(f"Feedback received", "success")
+            support_msg = SupportMessage(
+                email=subject,
+                name=title,
+                subject=question,
+                message=message_text,
+                date=datetime.now(pytz.utc)
+            )
+            db.session.add(support_msg)
+            db.session.commit()
+            flash("Thank you, your message has been submitted.", "success")
         return redirect(url_for("support"))
 
     return render_template("support.html")
+
+
+@app.route('/feedback')
+@login_required
+def feedback():
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for("home"))
+    messages = SupportMessage.query.order_by(desc(SupportMessage.date)).all()
+    return render_template('feedback_admin.html', messages=messages)
 
 @app.route("/stocks", defaults={'page_num': 1})
 @app.route("/stocks/<int:page_num>")
@@ -542,6 +567,24 @@ def delete_order(id):
     return redirect(url_for('stocks'))
 
 
+# Delete feedback message
+@app.route('/feedback/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_feedback(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    msg = SupportMessage.query.get_or_404(id)
+    try:
+        db.session.delete(msg)
+        db.session.commit()
+        flash('Feedback message deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting feedback: {str(e)}', 'error')
+    return redirect(url_for('feedback'))
+
+
 #Registration Route
 @app.route('/signup', methods=["GET", "POST"])
 def register():
@@ -713,7 +756,6 @@ def stock_admin(page_num):
 @app.route('/add_stock_page', methods=['GET', 'POST'])
 @login_required
 def add_stock_page():
-    # admin-only access
     if getattr(current_user, "role", None) != "admin":
         flash("Access denied: admin only", "error")
         return redirect(url_for("home"))
