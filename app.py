@@ -74,6 +74,10 @@ class SupportMessage(db.Model):
     subject = db.Column(db.String(255))
     message = db.Column(db.Text)
     date = db.Column(db.DateTime, nullable=False, default=datetime.now(pytz.utc))
+
+class MarketControl(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    market_enabled = db.Column(db.Boolean, nullable=False, default=True)
 # Flask-Login setup
 @login_manager.user_loader
 def load_user(user_id):
@@ -118,6 +122,11 @@ def is_market_open():
     now = utc_now.astimezone(pytz.timezone(timezone))
     current_time = now.time()
     current_day = now.strftime("%A")
+
+    # override market close
+    market_control = MarketControl.query.first()
+    if market_control and not market_control.market_enabled:
+        return False
 
     holiday_today = Holidays.query.filter_by(holiday_date=now.date()).first()
     if holiday_today:
@@ -309,7 +318,8 @@ def sell(page_num):
 def trading_hours():
     if current_user.role == "admin":
         days = TradingHours.query.all()
-        return render_template("trading_hours.html", days=days)
+        market_control = MarketControl.query.first()
+        return render_template("trading_hours.html", days=days, market_control=market_control)
     else:
         return redirect(url_for('home'))
     
@@ -330,6 +340,28 @@ def get_market_hours():
         })
     else:
         return jsonify({'start_time': '', 'end_time': ''})
+
+
+# Toggle open and close market
+@app.route('/market_toggle', methods=['POST'])
+@login_required
+def market_toggle():
+    if getattr(current_user, "role", None) != "admin":
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    enabled = request.form.get('enabled')
+    enabled_flag = True if enabled == 'on' or enabled == 'true' or enabled == '1' else False
+
+    mc = MarketControl.query.first()
+    if not mc:
+        mc = MarketControl(market_enabled=enabled_flag)
+        db.session.add(mc)
+    else:
+        mc.market_enabled = enabled_flag
+    db.session.commit()
+
+    flash(f"Market {'enabled' if enabled_flag else 'disabled'}.", 'success')
+    return redirect(url_for('trading_hours'))
 
 
 @app.route('/buy_confirmation', methods=["POST"])
@@ -839,7 +871,7 @@ def edit_market_hours():
     day.end_time = request.form["end_time"]
     db.session.commit()
     flash(f"Updated!", "success")
-    return render_template("trading_hours.html")
+    return redirect(url_for('trading_hours'))
 
 #Admin Holiday Management Page
 @app.route("/holiday_admin", defaults={'page_num': 1})

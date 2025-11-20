@@ -12,6 +12,22 @@
         {% endwith %}
     <div class="container tertiary rounded-5 p-5" style="max-width: 700px;">
         <h1 class="text-center">Edit Market Hours</h1>
+        <div class="d-flex justify-content-center mb-3 align-items-center">
+            <form method="post" action="{{ url_for('market_toggle') }}" class="d-flex align-items-center">
+                <div class="form-check form-switch me-3" style="transform: scale(1.1);">
+                    <input class="form-check-input" type="checkbox" id="market_enabled" name="enabled" {% if market_control is none or market_control.market_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="market_enabled">Force Market Open/Close</label>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary me-3">Apply</button>
+            </form>
+            {% if market_control is none %}
+                <span class="badge bg-secondary">Status: Enabled (default)</span>
+            {% elif market_control.market_enabled %}
+                <span class="badge bg-success">Status: Enabled</span>
+            {% else %}
+                <span class="badge bg-danger">Status: Disabled</span>
+            {% endif %}
+        </div>
         <form action="/edit_market_hours" method="POST">
 
             <div class="row justify-content-center">
