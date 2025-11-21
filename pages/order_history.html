@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Order History{% endblock %}
+{% block content %}
+<title>Order History</title>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
+</head>
+    <body>
+        <div class="container mt-5">
+        <h1 class="mb-5">Order History</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+            <div class="secondary p-4 pb-3">
+                <form method="GET" action="{{ url_for('order_history') }}">
+                    {% if sort == "desc" %}
+                    <input type="hidden" name="sort" value="asc">
+                    {% elif sort == "asc" %}
+                    <input type="hidden" name="sort" value="desc">
+                    {% endif %}
+                    <button class="filter-button mb-3" type="submit" >
+                        <i class="bi bi-filter filter-icon"></i>
+                        {% if sort == "desc" %}
+                        <p style="position: absolute; transform: translateY(-50%); font-weight:500">Filter: <u>Date (Descending)</u></p>
+                        {% elif sort == "asc" %}
+                        <p style="position: absolute; transform: translateY(-50%); font-weight:500">Filter: <u>Date (Ascending)</u></p>
+                        {% endif %}
+                    </button>
+                </form>
+                    <table class="table table-striped border-dark text-center"> 
+                        <thead> 
+                            <tr> 
+                                <th>Date</th>
+                                <th>Stock Name</th>
+                                <th>Ticker Symbol</th>
+                                <th>Quantity</th>
+                                <th>Transaction Type</th>
+                                <th>Balance Change</th> 
+                            </tr> 
+                        </thead> 
+                        <tbody id="order_list">
+                            {%  for order in orders  %}
+                                <tr>
+                                    <td>{{order.date.strftime('%m-%d-%Y | %H:%M')}}</td>
+                                    <td>{{order.stock.name}}</td>
+                                    <td>{{order.stock.ticker}}</td>
+                                    <td>{{order.quantity}}</td>
+                                    <td>{{order.transaction_type | capitalize}}</td>
+                                    {%  if order.transaction_type == "sell"  %}
+                                        <td style="color: rgb(145, 255, 145);">+${{"%.2f"|format(order.total_price)}}</td>
+                                    {%  else  %}
+                                        <td style="color: rgb(255, 145, 145);">-${{"%.2f"|format(order.total_price)}}</td>
+                                    {%  endif  %}
+                                </tr>
+                            {% else %} 
+                            <tr> 
+                                <td colspan="6">The Transaction History is empty.</td> 
+                            </tr> 
+                            {% endfor %} 
+                        </tbody> 
+                    </table>
+
+                    <nav class="mt-4" id="pagination">
+                    <ul class="pagination justify-content-center custom-pagination">
+                        {% if orders.has_prev %}
+                            <li class="page-item">
+                            <a class="page-link" href="{{ url_for('order_history', page_num=orders.page - 1, sort=sort) }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                            <a class="page-link" href="{{ url_for('order_history', page_num=orders.page - 1, sort=sort) }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                            </li>
+                        {% endif %}
+
+                        {% for page in orders.iter_pages() %}
+                            {% if page == current_page %}
+                                <li class="page-item active"><a class="page-link" href="{{ url_for('order_history', page_num=page, sort=sort) }}">{{ page }}</a></li>
+                            {% elif page == none %}
+                                <li class="page-item disabled"><a class="page-link" href="{{ url_for('order_history', page_num=page, sort=sort) }}">...</a></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('order_history', page_num=page, sort=sort) }}">{{ page }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if orders.has_next %}
+                            <li class="page-item">
+                            <a class="page-link" href="{{ url_for('order_history', page_num=orders.page + 1, sort=sort) }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                            <a class="page-link" href="{{ url_for('order_history', page_num=orders.page + 1, sort=sort) }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    </nav>
+
+            </div> 
+        </div>
+    </body>
+{% endblock %}

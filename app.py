@@ -290,6 +290,17 @@ def search(page_num):
     
     return render_template('_search_results.html', stocks=stocks, current_page=page_num, format_num=format_num)
 
+@app.route("/order_history", defaults={'page_num': 1})
+@app.route("/order_history/<int:page_num>")
+def order_history(page_num):
+    sort = request.args.get("sort", "desc")
+    print(sort)
+    if sort == 'desc':
+        orders = db.session.query(Transactions).join(Stock).filter(Transactions.user_id == current_user.id).order_by(desc(Transactions.date)).paginate(per_page=10, page=page_num, error_out=True)
+    elif sort == 'asc':
+        orders = db.session.query(Transactions).join(Stock).filter(Transactions.user_id == current_user.id).order_by((Transactions.date)).paginate(per_page=10, page=page_num, error_out=True)
+    return render_template('order_history.html', orders=orders, current_page=page_num, sort=sort)
+
 @app.route("/login_page")
 def login_page():
     return render_template('login_page.html')
