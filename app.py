@@ -745,12 +745,72 @@ def delete_profile():
 @app.route('/user_overview/<int:page_num>')
 @login_required
 def user_overview (page_num):
-    # optional admin-only check
+    # check if admin
     if getattr(current_user, "role", None) != "admin":
         flash("Access denied: admin only", "error")
         return redirect(url_for("home"))
     users = User.query.order_by(User.email.asc()).paginate(per_page=8, page=page_num, error_out=True)
     return render_template('user_overview.html', users=users, current_page=page_num)
+
+
+# Promote user (User -> Admin)
+@app.route('/promote_user/<int:id>')
+@login_required
+def promote_user(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role == 'admin':
+        flash("Error: User is already an administrator", "danger")
+        return redirect(url_for('user_overview'))
+    return render_template('promote_confirm.html', user=user)
+
+
+@app.route('/promote_user/<int:id>/confirm', methods=['POST'])
+@login_required
+def promote_user_confirm(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role == 'admin':
+        flash("Error: User is already an administrator", "danger")
+        return redirect(url_for('user_overview'))
+    user.role = 'admin'
+    db.session.commit()
+    flash(f"{user.email} promoted to administrator.", "success")
+    return redirect(url_for('user_overview'))
+
+
+# Demote user (Admin -> User)
+@app.route('/demote_user/<int:id>')
+@login_required
+def demote_user(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role != 'admin':
+        flash("Error: user is already assigned the user role.", "danger")
+        return redirect(url_for('user_overview'))
+    return render_template('demote_confirm.html', user=user)
+
+
+@app.route('/demote_user/<int:id>/confirm', methods=['POST'])
+@login_required
+def demote_user_confirm(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role != 'admin':
+        flash("Error: user is already assigned the user role.", "danger")
+        return redirect(url_for('user_overview'))
+    user.role = 'user'
+    db.session.commit()
+    flash(f"{user.email} demoted to user.", "success")
+    return redirect(url_for('user_overview'))
 
 #Log-in Route
 @app.route('/login', methods=["GET", "POST"])
