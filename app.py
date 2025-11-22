@@ -919,7 +919,6 @@ def add_stock_page():
             flash(f"A stock with ticker '{ticker}' already exists.", "danger")
             return redirect(url_for("add_stock_page"))
 
-        new_stock = Stock(name=name, price=price, volume=volume, ticker=ticker)
         new_stock = Stock(name=name, price=price, previous_price=None, volume=volume, ticker=ticker)
         db.session.add(new_stock)
         db.session.commit()
