@@ -22,6 +22,8 @@
             <th>Name</th>
             <th>Ticker Symbol</th>
             <th>Price</th>
+            <th>Difference</th>
+            <th>Percent Change</th>
             <th>Quantity</th>
             <th>Actions</th>
           </tr>
@@ -33,6 +35,33 @@
             <td>{{ s.name }}</td>
             <td>{{ s.ticker }}</td>
             <td>${{ '%.2f'|format(s.price) }}</td>
+            {% if s.previous_price is not none %}
+            {% set diff = s.price - s.previous_price %}
+            {% if diff > 0 %}
+            <td style="color: rgb(145, 255, 145);">${{ '%+.2f'|format(diff)}}</td>
+            {% elif diff < 0 %}
+            <td style="color: rgb(255, 145, 145);">${{ '%+.2f'|format(diff)}}</td>
+            {% else %}
+            <td>{{ '%+.2f'|format(diff) }}</td>
+            {% endif %}
+
+            {% if s.previous_price != 0 and s.previous_price is not none %}
+                {% set pct = ((s.price - s.previous_price) / s.previous_price) * 100 %}
+                {% if pct > 0 %}
+                <td style="color: rgb(145, 255, 145);">{{ '%+.2f'|format(pct) }}%</td>
+                {% elif pct < 0 %}
+                <td style="color: rgb(255, 145, 145);">{{ '%+.2f'|format(pct) }}%</td>
+                {% else %}
+                <td>{{ '%+.2f'|format(pct) }}%</td>
+                {% endif %}
+            {% else %}
+                <td>N/A</td>
+            {% endif %}
+            {% else %}
+            <td>N/A</td>
+            <td>N/A</td>
+            {% endif %}
+
             <td>{{ (format_num(s.volume)) }}</td>
             <td>
               <a href="{{ url_for('edit_stock', id=s.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
@@ -40,7 +69,7 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="5" class="text-center">No stocks found.</td></tr>
+          <tr><td colspan="8" class="text-center">No stocks found.</td></tr>
           {% endfor %}
         </tbody>
       </table>

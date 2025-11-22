@@ -29,8 +29,10 @@
                             <tr> 
                                 <th>Name</th>
                                 <th>Ticker Symbol</th>
-                                <th>Price per stock</th> 
-                                <th>Volume</th> 
+                                <th>Price per stock</th>
+                                <th>Difference</th>
+                                <th>Percent Change</th>
+                                <th>Volume</th>
                             </tr> 
                         </thead> 
                         <tbody>
@@ -39,6 +41,32 @@
                                 <td>{{ stock.name }}</td> 
                                 <td>{{ stock.ticker }}</td> 
                                 <td>${{ "%.2f"|format(stock.price) }}</td> 
+                                {% if stock.previous_price is not none %}
+                                {% set diff = stock.price - stock.previous_price %}
+                                {% if diff > 0 %}
+                                <td style="color: rgb(145, 255, 145);">${{ '%+.2f'|format(diff)}}</td>
+                                {% elif diff < 0 %}
+                                <td style="color: rgb(255, 145, 145);">${{ '%+.2f'|format(diff)}}</td>
+                                {% else %}
+                                <td>{{ '%+.2f'|format(diff) }}</td>
+                                {% endif %}
+                                {# percent change column #}
+                                {% if stock.previous_price != 0 and stock.previous_price is not none %}
+                                    {% set pct = ((stock.price - stock.previous_price) / stock.previous_price) * 100 %}
+                                    {% if pct > 0 %}
+                                    <td style="color: rgb(145, 255, 145);">{{ '%+.2f'|format(pct) }}%</td>
+                                    {% elif pct < 0 %}
+                                    <td style="color: rgb(255, 145, 145);">{{ '%+.2f'|format(pct) }}%</td>
+                                    {% else %}
+                                    <td>{{ '%+.2f'|format(pct) }}%</td>
+                                    {% endif %}
+                                {% else %}
+                                    <td>N/A</td>
+                                {% endif %}
+                                {% else %}
+                                <td>N/A</td>
+                                <td>N/A</td>
+                                {% endif %}
                                 <td>{{ (format_num(stock.volume)) }}</td> 
                             </tr> 
                             {% else %} 

@@ -109,7 +109,21 @@
                   <tr>
                     <td>{{ x.stock.ticker }}</td>
                     <td>{{ x.quantity }}</td>
-                    <td>${{  "%.2f"|format(x.stock.price)  }}</td>
+                    <td>
+                      ${{  "%.2f"|format(x.stock.price)  }}
+                      {% if x.stock.previous_price is not none and x.stock.previous_price != 0 %}
+                        {% set pct = ((x.stock.price - x.stock.previous_price) / x.stock.previous_price) * 100 %}
+                        {% if pct > 0 %}
+                          <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(pct) }})%</small>
+                        {% elif pct < 0 %}
+                          <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(pct) }})%</small>
+                        {% else %}
+                          <small class="ms-2">{{ '%+.2f'|format(pct) }}%</small>
+                        {% endif %}
+                      {% else %}
+                        <small class="ms-2">N/A</small>
+                      {% endif %}
+                    </td>
                     <td>${{  "%.2f"|format(x.stock.price * x.quantity) }}</td>
                     <td>
                       <a href="{{ url_for('home') }}" class="btn btn-sm btn-primary">Buy</a>

@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import time, datetime
 from sqlalchemy import desc
 from sqlalchemy import func
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 import pytz
 
@@ -28,6 +29,7 @@ class Stock(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     ticker = db.Column(db.String(5), nullable=False, unique=True)
     price = db.Column(db.Float, nullable=False)
+    previous_price = db.Column(db.Float, nullable=True)
     volume = db.Column(db.Integer, nullable=False)
     transactions = db.relationship('Transactions', backref='stock')
     portfolio_entries = db.relationship('Portfolio', backref='stock')
@@ -88,9 +90,32 @@ def stock_randomize():
     with app.app_context():
         stocks = Stock.query.all()
         for stock in stocks:
+            old_price = stock.price if stock.price is not None else None
+
+            #Clear prev price
+            stock.previous_price = None
+            try:
+                db.session.add(stock)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            #prev price set to old price
+            stock.previous_price = old_price
+            try:
+                db.session.add(stock)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            #random generate new price and store to new price
             new_price = round(random.uniform(15,70), 2)
             stock.price = new_price
-        db.session.commit()
+            try:
+                db.session.add(stock)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
     print('randomized!')
 
 #Initialize Market Hours
@@ -170,6 +195,16 @@ with app.app_context():
     db.create_all()
     if TradingHours.query.first() is None:
         init_market_hours()
+    #Ensure DB has prev_price column on stock
+    try:
+        inspector = inspect(db.engine)
+        cols = [c['name'] for c in inspector.get_columns('stock')]
+        if 'previous_price' not in cols:
+            db.session.execute(text('ALTER TABLE stock ADD COLUMN previous_price DOUBLE NULL'))
+            db.session.commit()
+            print('Added previous_price column to stock table')
+    except Exception as e:
+        print('Could not ensure previous_price column exists:', e)
 
 
 #Routes
@@ -885,6 +920,7 @@ def add_stock_page():
             return redirect(url_for("add_stock_page"))
 
         new_stock = Stock(name=name, price=price, volume=volume, ticker=ticker)
+        new_stock = Stock(name=name, price=price, previous_price=None, volume=volume, ticker=ticker)
         db.session.add(new_stock)
         db.session.commit()
         flash(f"Stock '{name}' added.", "success")
@@ -919,6 +955,8 @@ def edit_stock(id):
             return redirect(url_for('edit_stock_page', id=id))
 
         stock.name = name
+        #saves prev price when admin changes price of stock
+        stock.previous_price = stock.price if stock.price is not None else None
         stock.price = price
         stock.volume = volume
         stock.ticker = ticker
