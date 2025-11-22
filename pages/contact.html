@@ -32,11 +32,47 @@
   }
  
   .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
+  /*portraits*/
+  .contact-portraits {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+    height: 100%;
+    padding-right: 2rem;
+  }
+  .portrait-wrap {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    border: 6px solid rgba(0,0,0,0.18);
+    background-color: #222;
+    display: inline-block;
+  }
+  .portrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 220ms ease;
+    transform-origin: center center;
+  }
+  .contact-portraits .portrait-wrap:nth-child(2) .portrait {
+    transform: scale(1.2);
+  }
+  @media (max-width: 767.98px) {
+    .contact-portraits { flex-direction: row; gap: 12px; padding-right: 0; }
+    .portrait-wrap { width: 80px; height: 80px; border-width: 3px; }
+    .portrait { width: 100%; height: 100%; }
+  }
 </style>
 <body id="home_body" class="page-contact">
 
 <div class="container py-5">
-  <div class="row left-items-center">
+  <div class="row align-items-center">
     <!-- Left Column: Text -->
     <div class="col-md-6 right-forms">
       <h2 class="home-title mb-4">Get in Touch</h2>
@@ -59,6 +95,17 @@
         <li>Location: Mesa, AZ</li>
       </ul> 
 
+    </div>
+
+    <!-- portrait images -->
+    <div class="col-md-6 d-none d-md-flex justify-content-end">
+      <div class="contact-portraits">
+        <!--Replace image with portrait under static/images-->
+        <div class="portrait-wrap"><img src="{{ url_for('static', filename='images/pfp.jpg') }}" alt="Joseph Ousley" class="portrait"></div>
+        <div class="portrait-wrap"><img src="{{ url_for('static', filename='images/allenPicture.jpg') }}" alt="Allen Pestka" class="portrait"></div>
+        <!--Replace image with portrait under static/images-->
+        <div class="portrait-wrap"><img src="{{ url_for('static', filename='images/pfp.jpg') }}" alt="Muhammad Azharuddin" class="portrait"></div>
+      </div>
     </div>
 
   </div>
