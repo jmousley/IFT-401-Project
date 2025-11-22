@@ -36,7 +36,22 @@
         <div class="col-md-6 pb-3" style="height: 100%;">
           <div class="mb-3 mt-3 secondary d-flex flex-column align-items-start p-3 rounded" style="height: 90%;">
             <h3 class="mb-1">Portfolio Value:</h3>
-            <h2 class="mb-3">${{  "%.2f"|format(portfolio_value)  }}</h2>
+            {% set prev_total = (current_user.previous_portfolio_value if current_user.is_authenticated else None) %}
+
+            <h2 class="mb-3">${{  "%.2f"|format(portfolio_value)  }}
+              {% if prev_total is not none and prev_total > 0 %}
+                {% set total_pct = ((portfolio_value - prev_total) / prev_total) * 100 %}
+                {% if total_pct > 0 %}
+                  <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                {% elif total_pct < 0 %}
+                  <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                {% else %}
+                  <small class="ms-2">({{ '%+.2f'|format(total_pct) }})%</small>
+                {% endif %}
+              {% else %}
+                <small class="ms-2">N/A</small>
+              {% endif %}
+            </h2>
           </div>
         </div>
       </div>

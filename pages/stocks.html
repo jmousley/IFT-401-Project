@@ -50,7 +50,7 @@
                                 {% else %}
                                 <td>{{ '%+.2f'|format(diff) }}</td>
                                 {% endif %}
-                                {# percent change column #}
+                                <!--Percent Change Calculation-->
                                 {% if stock.previous_price != 0 and stock.previous_price is not none %}
                                     {% set pct = ((stock.price - stock.previous_price) / stock.previous_price) * 100 %}
                                     {% if pct > 0 %}

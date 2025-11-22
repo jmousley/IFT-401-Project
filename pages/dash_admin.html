@@ -33,9 +33,23 @@
         </div>
         <div class="col-md-6 pb-3">
           <div class="mb-3 mt-3 secondary d-flex flex-column align-items-start p-3 rounded">
-            <h4 class="mb-1">Portfolio Value:</h4>
-            <h3 class="mb-3">${{ '%.2f'|format(portfolio_value) }}</h3>
-          </div>
+              <h4 class="mb-1">Portfolio Value:</h4>
+              {% set prev_total = (current_user.previous_portfolio_value if current_user.is_authenticated else None) %}
+              <h3 class="mb-3">${{ '%.2f'|format(portfolio_value) }}
+                {% if prev_total is not none and prev_total > 0 %}
+                  {% set total_pct = ((portfolio_value - prev_total) / prev_total) * 100 %}
+                  {% if total_pct > 0 %}
+                    <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                  {% elif total_pct < 0 %}
+                    <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                  {% else %}
+                    <small class="ms-2">({{ '%+.2f'|format(total_pct) }})%</small>
+                  {% endif %}
+                {% else %}
+                  <small class="ms-2">N/A</small>
+                {% endif %}
+              </h3>
+            </div>
         </div>
       </div>
 
@@ -52,7 +66,7 @@
         <div class="col-md-3 pb-3 d-flex">
             <a href="{{ url_for('holiday_admin') }}" class="text-decoration-none text-reset flex-fill button text-center pb-3" style="height: 100%;">
               <div class="mb-3 mt-3 secondary d-flex flex-column p-3 rounded justify-content-center" style="height: 100%;">
-                <h4 class="mb-1">Holidays</h4>
+                <h4 class="mb-1" >Holidays</h4>
               </div>
             </a>
         </div>

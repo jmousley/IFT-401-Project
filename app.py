@@ -41,6 +41,7 @@ class User(UserMixin, db.Model):
     fname = db.Column(db.String(100), nullable=False)
     lname = db.Column(db.String(100), nullable=False)
     balance = db.Column(db.Float, nullable=False)
+    previous_portfolio_value = db.Column(db.Float, nullable=True, default=0.0)
     transactions = db.relationship('Transactions', backref='user')
     portfolio_entries = db.relationship('Portfolio', backref='user')
     role = db.Column(db.String(100), nullable=False)
@@ -88,6 +89,24 @@ def load_user(user_id):
 # Randomize stock prices
 def stock_randomize():
     with app.app_context():
+        #Store user portfolio value before price randomization
+        users = User.query.all()
+        for user in users:
+            total = 0.0
+            entries = Portfolio.query.filter_by(user_id=user.id).all()
+            for e in entries:
+                if e.stock and e.quantity:
+                    try:
+                        total += (e.stock.price * int(e.quantity))
+                    except Exception:
+                        pass
+            user.previous_portfolio_value = round(total, 2)
+            try:
+                db.session.add(user)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
         stocks = Stock.query.all()
         for stock in stocks:
             old_price = stock.price if stock.price is not None else None
