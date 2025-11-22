@@ -6,7 +6,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import time, datetime
 from sqlalchemy import desc
 from sqlalchemy import func
-from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 import pytz
 
@@ -214,17 +213,6 @@ with app.app_context():
     db.create_all()
     if TradingHours.query.first() is None:
         init_market_hours()
-    #Ensure DB has prev_price column on stock
-    try:
-        inspector = inspect(db.engine)
-        cols = [c['name'] for c in inspector.get_columns('stock')]
-        if 'previous_price' not in cols:
-            db.session.execute(text('ALTER TABLE stock ADD COLUMN previous_price DOUBLE NULL'))
-            db.session.commit()
-            print('Added previous_price column to stock table')
-    except Exception as e:
-        print('Could not ensure previous_price column exists:', e)
-
 
 #Routes
 @app.route("/")
@@ -281,6 +269,26 @@ def home():
                                portfolio_value=portfolio_value, 
                                transaction_summary = transaction_summary,
                                timezone=timezone)
+
+@app.route("/quick_input")
+def quick_input():
+    if request.args.get('closed'):
+        flash("Market is closed!", "danger")
+        return redirect(url_for('home'))
+    stock_id = request.args.get("stock_id", type=int)
+    action = request.args.get("action")
+    stock = Stock.query.get_or_404(stock_id)
+    portfolio = Portfolio.query.filter_by(user_id=current_user.id,stock_id=stock.id).first()
+    return render_template('_quick_input.html', stock=stock, action=action, portfolio=portfolio)
+
+@app.route("/quick_input_cancel")
+def quick_input_cancel():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('stocks'))
+    stock_id = request.args.get("stock_id", type=int)
+    stock = Stock.query.get_or_404(stock_id)
+    return render_template("_quick_input_2.html", stock=stock)
 
 @app.route("/about")
 def about():
@@ -431,6 +439,9 @@ def market_toggle():
 
 @app.route('/buy_confirmation', methods=["POST"])
 def confirm_buy():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('home'))
     stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
@@ -467,7 +478,7 @@ def buy_stock():
     try:
         user.balance -= total_price
         db.session.commit()
-        flash(f"Successfully bought {quantity} * {stock.name} for ${total_price:.2f}.", "success")
+        flash(f"Successfully bought {quantity} {stock.name} for ${total_price:.2f}.", "success")
 
     except Exception as e:
         db.session.rollback()
@@ -495,10 +506,13 @@ def buy_stock():
     db.session.add(new_transaction)
     #end
     db.session.commit()
-    return redirect(url_for("stocks"))
+    return redirect(url_for("home"))
 
 @app.route('/sell_confirmation', methods=["POST"])
 def confirm_sell():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('stocks'))
     stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
@@ -567,7 +581,7 @@ def sell_stock():
         
     #end
     db.session.commit()
-    return redirect(url_for("stocks"))
+    return redirect(url_for("home"))
 
 
 #Routes to EDIT database tables

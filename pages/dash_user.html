@@ -1,22 +1,25 @@
 {% extends "base.html" %}
 {% block title %}User Dashboard{% endblock %}
 {% block content %}
-
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
 <div class="container-fluid pt-4" style="min-height: calc(80vh - 120px); padding-left: 5%; padding-right: 5%;">
-    
   <h1 class="pb-2">User Dashboard</h1>
   <div class="d-flex justify-content-between align-items-center">
     <h3>Welcome, {{ current_user.fname }}</h3>
     <h3 style="margin-left: 55%;">{{"Market Status - " ~ status}}</h3>
     <h3>{{ current_time }} ({{timezone}})</h3>
+  </div>
+  <div class="d-flex">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'warning' if category == 'warning' else category }} alert-dismissible fade show mb-3 mt-4" role="alert" style="width: 30%;">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
   </div>
 
   <div class="row" style="min-height: calc(80vh - 120px); max-height: calc(80vh - 120px); height: calc(80vh - 120px);">
@@ -42,9 +45,9 @@
               {% if prev_total is not none and prev_total > 0 %}
                 {% set total_pct = ((portfolio_value - prev_total) / prev_total) * 100 %}
                 {% if total_pct > 0 %}
-                  <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                  <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }}%)</small>
                 {% elif total_pct < 0 %}
-                  <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                  <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }}%)</small>
                 {% else %}
                   <small class="ms-2">({{ '%+.2f'|format(total_pct) }})%</small>
                 {% endif %}
@@ -129,9 +132,9 @@
                       {% if x.stock.previous_price is not none and x.stock.previous_price != 0 %}
                         {% set pct = ((x.stock.price - x.stock.previous_price) / x.stock.previous_price) * 100 %}
                         {% if pct > 0 %}
-                          <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(pct) }})%</small>
+                          <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(pct) }}%)</small>
                         {% elif pct < 0 %}
-                          <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(pct) }})%</small>
+                          <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(pct) }}%)</small>
                         {% else %}
                           <small class="ms-2">{{ '%+.2f'|format(pct) }}%</small>
                         {% endif %}
@@ -141,8 +144,22 @@
                     </td>
                     <td>${{  "%.2f"|format(x.stock.price * x.quantity) }}</td>
                     <td>
-                      <a href="{{ url_for('home') }}" class="btn btn-sm btn-primary">Buy</a>
-                      <a href="{{ url_for('home') }}" class="btn btn-sm btn-primary">Sell</a>
+                      {% if status == "Open" %}
+                      <div id="quick_actions_{{ x.stock.id }}">
+                        <button class="btn btn-sm btn-primary" hx-get="/quick_input?stock_id={{x.stock.id}}&action=buy" hx-target="#quick_actions_{{ x.stock.id }}">Buy</button>
+                        <button class="btn btn-sm btn-primary" hx-get="/quick_input?stock_id={{x.stock.id}}&action=sell" hx-target="#quick_actions_{{ x.stock.id }}">Sell</button>
+                      </div>
+
+                      {% elif status == "Closed" %}
+                      <div id="quick_actions_{{ x.stock.id }}">
+                        <form action="{{ url_for('quick_input') }}">
+                          <input type="hidden" value="closed" name="closed">
+                          <button class="btn btn-sm btn-primary">Buy</button>
+                          <button class="btn btn-sm btn-primary">Sell</button>
+                        </form>
+                      </div>
+
+                      {% endif %}
                     </td>
                   </tr>
                   {% endfor %}

@@ -44,9 +44,10 @@
                                 {% if stock.previous_price is not none %}
                                 {% set diff = stock.price - stock.previous_price %}
                                 {% if diff > 0 %}
-                                <td style="color: rgb(145, 255, 145);">${{ '%+.2f'|format(diff)}}</td>
+                                <td style="color: rgb(145, 255, 145);">+${{ '%.2f'|format(diff)}}</td>
                                 {% elif diff < 0 %}
-                                <td style="color: rgb(255, 145, 145);">${{ '%+.2f'|format(diff)}}</td>
+                                {% set diff = (diff * -1) %}
+                                <td style="color: rgb(255, 145, 145);">-${{ '%.2f'|format(diff)}}</td>
                                 {% else %}
                                 <td>{{ '%+.2f'|format(diff) }}</td>
                                 {% endif %}

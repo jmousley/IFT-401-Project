@@ -201,6 +201,11 @@ footer {
   border: none;
   color: black;
   width: 20%;
+  transition: 0.25s;
+}
+
+.filter-button:hover {
+  background-color: #b99746;
 }
 
 .transparent-input {
@@ -218,6 +223,24 @@ footer {
 
 .transparent-input:focus {
   outline: none;
+}
+
+.quantity-input {
+  width: 40% !important;
+  box-sizing: border-box !important;
+  margin: 0% !important;
+  padding: 0% !important;
+}
+.quick-quantity-form {
+  position: relative;
+}
+
+.bi-x {
+    position: absolute;
+    bottom: 0%;
+    transform: translateY(7%);
+    font-size: 1.5rem;
+    color: white;
 }
 
 @media (min-width: 900px) { 
