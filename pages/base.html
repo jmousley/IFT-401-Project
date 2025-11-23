@@ -6,12 +6,12 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <title>{% block title %}{% endblock %} - Stock Trading Website</title>
+  <title>{% block title %}{% endblock %} - BusyBee Trading</title>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg" style="height: 6vh;">
     <div class="container">
-      <a class="navbar-brand" href="{{ url_for('home') }}">Stock Trading Website</a>
+      <a class="navbar-brand" href="{{ url_for('home') }}">BusyBee Trading</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -41,7 +41,7 @@
     {% block content %}{% endblock %}
 
   <footer class="mt-5 fixed-bottom" style="height: 6vh;">
-    <div class="container py-3"><p class="text-center mb-0">© 2025 Realistic Stock Trader</p></div>
+    <div class="container py-3"><p class="text-center mb-0">© 2025 BusyBee Trading</p></div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

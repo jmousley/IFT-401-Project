@@ -814,7 +814,7 @@ def delete_profile():
             db.session.delete(user_transaction)
         db.session.delete(user)
         db.session.commit()
-        flash("Profile deleted successfully. Thank you for using Increadibly Realistic Cool Stock Trader!", "success")
+        flash("Profile deleted successfully. Thank you for using BusyBee Trading!", "success")
         return redirect(url_for('home'))
     
     except Exception as e:
