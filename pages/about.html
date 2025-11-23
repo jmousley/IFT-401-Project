@@ -1,35 +1,146 @@
 {% extends "base.html" %}
 {% block title %}About{% endblock %}
 {% block content %}
-<div class="container-fluid pt-4" style="padding-left: 5%; padding-right: 5%;"> 
-  <div class="row">
-    <div class="col-lg-8">
 
-      <h1>About Us</h1>
-      <br>
-      
-      <p>Welcome to our Stock Trading Website! Our mission is to make investing and tracking stocks simple, intuitive, and accessible for everyone. Whether you are a beginner looking to understand the basics of the stock market or an experienced investor managing multiple portfolios, our platform is designed to help you make informed decisions with ease.</p>
-      <p>We provide real-time stock information, easy-to-use tools, and a secure environment to ensure your trading experience is smooth and reliable. Our team is constantly working behind the scenes to improve the functionality of the website, optimize performance, and incorporate user feedback to enhance overall usability.</p>
-      <p>Your satisfaction is our top priority. From responsive design to clear and organized data presentation, every aspect of our website is developed with the goal of providing a seamless and enjoyable experience. We believe that by combining technology, security, and user-centric design, we can empower our users to trade confidently and efficiently.</p>
-      <br>
-      <p>Thank you for visiting, and we look forward to supporting your trading journey!</p>
+<style>
+  .about-wrapper {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    justify-content: center;
+    padding: 40px 24px 60px;
+  }
 
-      <h6>Market Hours:</h6>
-        <p>8:00 a.m. - 5:00 p.m.</p>
-      <h6>Closed on Federal Holidays</h6>
-          <p>Jan 01 - New Years</p>
-          <p>Jan 15 - Martin Luther King Jr. Day</p>
-          <p>Feb 19 - Presidents' Day</p>
-          <p>May 27 - Memorial Day</p>
-          <p>Jun 19 - Juneteenth National Independence Day</p>
-          <p>Jul 04 - Independence Day</p>
-          <p>Sep 02 - Labor Day</p>
-          <p>Oct 14 - Columbus Day</p>
-          <p>Nov 11 - Veterans Day</p>
-          <p>Nov 28 - Thanksgiving Day</p>
-          <p>Dec 25 - Christmas Day</p>
-      
+  .about-shell {
+    width: min(1100px, 100%);
+  }
+
+  .about-heading {
+    font-size: 2.2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .about-subheading {
+    font-size: 0.95rem;
+    color: #f5e3e3;
+    margin-bottom: 1.8rem;
+  }
+
+  .about-content {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.2fr);
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .about-main,
+  .about-sidecard {
+    background-color: #2a1916;
+    border-radius: 16px;
+    border: 1px solid #573131;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
+    padding: 20px 24px;
+  }
+
+  .about-main p {
+    line-height: 1.6;
+    margin-bottom: 0.85rem;
+  }
+
+  .about-meta-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ddb967;
+    margin-bottom: 0.4rem;
+  }
+
+  .about-hours,
+  .about-holidays {
+    margin-bottom: 1.4rem;
+  }
+
+  .about-list {
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+    font-size: 0.9rem;
+  }
+
+  .about-list li {
+    margin-bottom: 0.25rem;
+  }
+
+  @media (max-width: 992px) {
+    .about-content {
+      grid-template-columns: 1fr;
+    }
+    .about-wrapper {
+      padding-inline: 16px;
+    }
+  }
+</style>
+
+<div class="about-wrapper">
+  <div class="about-shell">
+    <h1 class="about-heading">About Us</h1>
+    <p class="about-subheading">
+      Learn more about our mission, trading hours, and holiday schedule.
+    </p>
+
+    <div class="about-content">
+      <!-- Main description -->
+      <section class="about-main">
+        <p>
+          Welcome to our Stock Trading Website! Our mission is to make investing and tracking stocks simple,
+          intuitive, and accessible for everyone. Whether you are a beginner looking to understand the basics of
+          the stock market or an experienced investor managing multiple portfolios, our platform is designed to help
+          you make informed decisions with ease.
+        </p>
+        <p>
+          We provide real-time stock information, easy-to-use tools, and a secure environment to ensure your trading
+          experience is smooth and reliable. Our team is constantly working behind the scenes to improve the
+          functionality of the website, optimize performance, and incorporate user feedback to enhance overall
+          usability.
+        </p>
+        <p>
+          Your satisfaction is our top priority. From responsive design to clear and organized data presentation,
+          every aspect of our website is developed with the goal of providing a seamless and enjoyable experience.
+          We believe that by combining technology, security, and user-centric design, we can empower our users to
+          trade confidently and efficiently.
+        </p>
+        <p>
+          Thank you for visiting, and we look forward to supporting your trading journey!
+        </p>
+      </section>
+
+      <!-- Side panel: hours + holidays -->
+      <aside class="about-sidecard">
+        <div class="about-hours">
+          <div class="about-meta-title">Market Hours</div>
+          <ul class="about-list">
+            <li>8:00 a.m. – 5:00 p.m.</li>
+          </ul>
+        </div>
+
+        <div class="about-holidays">
+          <div class="about-meta-title">Closed on Federal Holidays</div>
+          <ul class="about-list">
+            <li>Jan 01 – New Year’s Day</li>
+            <li>Jan 15 – Martin Luther King Jr. Day</li>
+            <li>Feb 19 – Presidents’ Day</li>
+            <li>May 27 – Memorial Day</li>
+            <li>Jun 19 – Juneteenth National Independence Day</li>
+            <li>Jul 04 – Independence Day</li>
+            <li>Sep 02 – Labor Day</li>
+            <li>Oct 14 – Columbus Day</li>
+            <li>Nov 11 – Veterans Day</li>
+            <li>Nov 28 – Thanksgiving Day</li>
+            <li>Dec 25 – Christmas Day</li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </div>
 </div>
+
 {% endblock %}
