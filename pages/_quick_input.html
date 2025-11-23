@@ -1,0 +1,13 @@
+{% if action == "buy" %}
+    <form method="post" action="/buy_confirmation" class="quick-quantity-form">
+        <input type="hidden" name="stock_id" value="{{stock.id}}">
+        <input type="number" name="quantity" value="1" min="1" max="1000000" style="width: 30%;" class="quantity-input">
+        <i class="bi bi-x" style="cursor: pointer;" hx-get="/quick_input_cancel?stock_id={{ stock.id }}" hx-target="#quick_actions_{{ stock.id }}"></i>
+    </form>
+{% elif action == "sell" %}
+    <form method="post" action="/sell_confirmation" class="quick-quantity-form">
+        <input type="hidden" name="stock_id" value="{{stock.id}}">
+        <input type="number" name="quantity" value="1" min="1" max="{{ portfolio.quantity }}" style="width: 30%;" class="quantity-input">
+        <i class="bi bi-x" style="cursor: pointer;" hx-get="/quick_input_cancel?stock_id={{ stock.id }}" hx-target="#quick_actions_{{ stock.id }}"></i>
+    </form>
+{% endif %}

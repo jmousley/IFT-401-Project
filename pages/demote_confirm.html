@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Confirm Demotion{% endblock %}
+{% block content %}
+<div class="container pt-5" style="max-width: 720px;">
+  <h1 class="mb-4">Confirm Demotion</h1>
+  <p>Are you sure you want to demote <strong>{{ user.email }}</strong> ({{ user.fname }} {{ user.lname }}) from administrator to user?</p>
+  <form method="post" action="{{ url_for('demote_user_confirm', id=user.id) }}" style="display:inline-block;">
+    <button type="submit" class="btn btn-primary">Confirm</button>
+  </form>
+  <a href="{{ url_for('user_overview') }}" class="btn btn-sm btn-outline-danger ms-2">Cancel</a>
+</div>
+{% endblock %}

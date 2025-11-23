@@ -28,6 +28,7 @@ class Stock(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     ticker = db.Column(db.String(5), nullable=False, unique=True)
     price = db.Column(db.Float, nullable=False)
+    previous_price = db.Column(db.Float, nullable=True)
     volume = db.Column(db.Integer, nullable=False)
     transactions = db.relationship('Transactions', backref='stock')
     portfolio_entries = db.relationship('Portfolio', backref='stock')
@@ -39,6 +40,7 @@ class User(UserMixin, db.Model):
     fname = db.Column(db.String(100), nullable=False)
     lname = db.Column(db.String(100), nullable=False)
     balance = db.Column(db.Float, nullable=False)
+    previous_portfolio_value = db.Column(db.Float, nullable=True, default=0.0)
     transactions = db.relationship('Transactions', backref='user')
     portfolio_entries = db.relationship('Portfolio', backref='user')
     role = db.Column(db.String(100), nullable=False)
@@ -67,6 +69,17 @@ class Holidays(db.Model):
     name = db.Column(db.String(100), primary_key=True)
     holiday_date = db.Column(db.Date, nullable=False)
 
+class SupportMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150))
+    name = db.Column(db.String(150))
+    subject = db.Column(db.String(255))
+    message = db.Column(db.Text)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.now(pytz.utc))
+
+class MarketControl(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    market_enabled = db.Column(db.Boolean, nullable=False, default=True)
 # Flask-Login setup
 @login_manager.user_loader
 def load_user(user_id):
@@ -75,11 +88,52 @@ def load_user(user_id):
 # Randomize stock prices
 def stock_randomize():
     with app.app_context():
+        #Store user portfolio value before price randomization
+        users = User.query.all()
+        for user in users:
+            total = 0.0
+            entries = Portfolio.query.filter_by(user_id=user.id).all()
+            for e in entries:
+                if e.stock and e.quantity:
+                    try:
+                        total += (e.stock.price * int(e.quantity))
+                    except Exception:
+                        pass
+            user.previous_portfolio_value = round(total, 2)
+            try:
+                db.session.add(user)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
         stocks = Stock.query.all()
         for stock in stocks:
+            old_price = stock.price if stock.price is not None else None
+
+            #Clear prev price
+            stock.previous_price = None
+            try:
+                db.session.add(stock)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            #prev price set to old price
+            stock.previous_price = old_price
+            try:
+                db.session.add(stock)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            #random generate new price and store to new price
             new_price = round(random.uniform(15,70), 2)
             stock.price = new_price
-        db.session.commit()
+            try:
+                db.session.add(stock)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
     print('randomized!')
 
 #Initialize Market Hours
@@ -111,6 +165,11 @@ def is_market_open():
     now = utc_now.astimezone(pytz.timezone(timezone))
     current_time = now.time()
     current_day = now.strftime("%A")
+
+    # override market close
+    market_control = MarketControl.query.first()
+    if market_control and not market_control.market_enabled:
+        return False
 
     holiday_today = Holidays.query.filter_by(holiday_date=now.date()).first()
     if holiday_today:
@@ -154,7 +213,6 @@ with app.app_context():
     db.create_all()
     if TradingHours.query.first() is None:
         init_market_hours()
-
 
 #Routes
 @app.route("/")
@@ -212,6 +270,26 @@ def home():
                                transaction_summary = transaction_summary,
                                timezone=timezone)
 
+@app.route("/quick_input")
+def quick_input():
+    if request.args.get('closed'):
+        flash("Market is closed!", "danger")
+        return redirect(url_for('home'))
+    stock_id = request.args.get("stock_id", type=int)
+    action = request.args.get("action")
+    stock = Stock.query.get_or_404(stock_id)
+    portfolio = Portfolio.query.filter_by(user_id=current_user.id,stock_id=stock.id).first()
+    return render_template('_quick_input.html', stock=stock, action=action, portfolio=portfolio)
+
+@app.route("/quick_input_cancel")
+def quick_input_cancel():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('stocks'))
+    stock_id = request.args.get("stock_id", type=int)
+    stock = Stock.query.get_or_404(stock_id)
+    return render_template("_quick_input_2.html", stock=stock)
+
 @app.route("/about")
 def about():
     return render_template("about.html")
@@ -220,22 +298,45 @@ def about():
 def contact():
     return render_template("contact.html")
 
+
+@app.route('/start_here')
+def start_here():
+    return render_template('start_here.html')
+
 @app.route("/support", methods=["GET", "POST"])
 def support():
     if request.method == "POST":
         subject = (request.form.get("subject") or "").strip()
         title = (request.form.get("title") or "").strip()
         question = (request.form.get("question") or "").strip()
+        message_text = (request.form.get("message") or "").strip()
 
         if not subject or not title or not question:
-            flash("Please fill all required fields.", "danger")
-            return redirect(url_for("support"))
+            flash("Please fill out all required fields.", "warning")
         else:
-            #Flash message is not using bootstrap, need to fix later
-            flash(f"Feedback received", "success")
+            support_msg = SupportMessage(
+                email=subject,
+                name=title,
+                subject=question,
+                message=message_text,
+                date=datetime.now(pytz.utc)
+            )
+            db.session.add(support_msg)
+            db.session.commit()
+            flash("Thank you, your message has been submitted.", "success")
         return redirect(url_for("support"))
 
     return render_template("support.html")
+
+
+@app.route('/feedback')
+@login_required
+def feedback():
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for("home"))
+    messages = SupportMessage.query.order_by(desc(SupportMessage.date)).all()
+    return render_template('feedback_admin.html', messages=messages)
 
 @app.route("/stocks", defaults={'page_num': 1})
 @app.route("/stocks/<int:page_num>")
@@ -255,6 +356,17 @@ def search(page_num):
         stocks = Stock.query.order_by(Stock.name.asc()).paginate(per_page=8, page=page_num, error_out=True)
     
     return render_template('_search_results.html', stocks=stocks, current_page=page_num, format_num=format_num)
+
+@app.route("/order_history", defaults={'page_num': 1})
+@app.route("/order_history/<int:page_num>")
+def order_history(page_num):
+    sort = request.args.get("sort", "desc")
+    print(sort)
+    if sort == 'desc':
+        orders = db.session.query(Transactions).join(Stock).filter(Transactions.user_id == current_user.id).order_by(desc(Transactions.date)).paginate(per_page=10, page=page_num, error_out=True)
+    elif sort == 'asc':
+        orders = db.session.query(Transactions).join(Stock).filter(Transactions.user_id == current_user.id).order_by((Transactions.date)).paginate(per_page=10, page=page_num, error_out=True)
+    return render_template('order_history.html', orders=orders, current_page=page_num, sort=sort)
 
 @app.route("/login_page")
 def login_page():
@@ -284,7 +396,8 @@ def sell(page_num):
 def trading_hours():
     if current_user.role == "admin":
         days = TradingHours.query.all()
-        return render_template("trading_hours.html", days=days)
+        market_control = MarketControl.query.first()
+        return render_template("trading_hours.html", days=days, market_control=market_control)
     else:
         return redirect(url_for('home'))
     
@@ -307,8 +420,33 @@ def get_market_hours():
         return jsonify({'start_time': '', 'end_time': ''})
 
 
+# Toggle open and close market
+@app.route('/market_toggle', methods=['POST'])
+@login_required
+def market_toggle():
+    if getattr(current_user, "role", None) != "admin":
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    enabled = request.form.get('enabled')
+    enabled_flag = True if enabled == 'on' or enabled == 'true' or enabled == '1' else False
+
+    mc = MarketControl.query.first()
+    if not mc:
+        mc = MarketControl(market_enabled=enabled_flag)
+        db.session.add(mc)
+    else:
+        mc.market_enabled = enabled_flag
+    db.session.commit()
+
+    flash(f"Market {'enabled' if enabled_flag else 'disabled'}.", 'success')
+    return redirect(url_for('trading_hours'))
+
+
 @app.route('/buy_confirmation', methods=["POST"])
 def confirm_buy():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('home'))
     stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
@@ -345,7 +483,7 @@ def buy_stock():
     try:
         user.balance -= total_price
         db.session.commit()
-        flash(f"Successfully bought {quantity} * {stock.name} for ${total_price:.2f}.", "success")
+        flash(f"Successfully bought {quantity} {stock.name} for ${total_price:.2f}.", "success")
 
     except Exception as e:
         db.session.rollback()
@@ -373,10 +511,13 @@ def buy_stock():
     db.session.add(new_transaction)
     #end
     db.session.commit()
-    return redirect(url_for("stocks"))
+    return redirect(url_for("home"))
 
 @app.route('/sell_confirmation', methods=["POST"])
 def confirm_sell():
+    if is_market_open() == False:
+        flash("Market is closed!", "danger")
+        return redirect(url_for('stocks'))
     stock_id = request.form['stock_id']
     stock = Stock.query.get_or_404(stock_id)
     stock_price = stock.price
@@ -445,7 +586,7 @@ def sell_stock():
         
     #end
     db.session.commit()
-    return redirect(url_for("stocks"))
+    return redirect(url_for("home"))
 
 
 #Routes to EDIT database tables
@@ -540,6 +681,24 @@ def delete_order(id):
         db.session.rollback()
         flash(f'Error deleting order: {str(e)}', 'error')
     return redirect(url_for('stocks'))
+
+
+# Delete feedback message
+@app.route('/feedback/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_feedback(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    msg = SupportMessage.query.get_or_404(id)
+    try:
+        db.session.delete(msg)
+        db.session.commit()
+        flash('Feedback message deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting feedback: {str(e)}', 'error')
+    return redirect(url_for('feedback'))
 
 
 #Registration Route
@@ -655,7 +814,7 @@ def delete_profile():
             db.session.delete(user_transaction)
         db.session.delete(user)
         db.session.commit()
-        flash("Profile deleted successfully. Thank you for using Increadibly Realistic Cool Stock Trader!", "success")
+        flash("Profile deleted successfully. Thank you for using BusyBee Trading!", "success")
         return redirect(url_for('home'))
     
     except Exception as e:
@@ -670,12 +829,72 @@ def delete_profile():
 @app.route('/user_overview/<int:page_num>')
 @login_required
 def user_overview (page_num):
-    # optional admin-only check
+    # check if admin
     if getattr(current_user, "role", None) != "admin":
         flash("Access denied: admin only", "error")
         return redirect(url_for("home"))
     users = User.query.order_by(User.email.asc()).paginate(per_page=8, page=page_num, error_out=True)
     return render_template('user_overview.html', users=users, current_page=page_num)
+
+
+# Promote user (User -> Admin)
+@app.route('/promote_user/<int:id>')
+@login_required
+def promote_user(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role == 'admin':
+        flash("Error: User is already an administrator", "danger")
+        return redirect(url_for('user_overview'))
+    return render_template('promote_confirm.html', user=user)
+
+
+@app.route('/promote_user/<int:id>/confirm', methods=['POST'])
+@login_required
+def promote_user_confirm(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role == 'admin':
+        flash("Error: User is already an administrator", "danger")
+        return redirect(url_for('user_overview'))
+    user.role = 'admin'
+    db.session.commit()
+    flash(f"{user.email} promoted to administrator.", "success")
+    return redirect(url_for('user_overview'))
+
+
+# Demote user (Admin -> User)
+@app.route('/demote_user/<int:id>')
+@login_required
+def demote_user(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role != 'admin':
+        flash("Error: user is already assigned the user role.", "danger")
+        return redirect(url_for('user_overview'))
+    return render_template('demote_confirm.html', user=user)
+
+
+@app.route('/demote_user/<int:id>/confirm', methods=['POST'])
+@login_required
+def demote_user_confirm(id):
+    if getattr(current_user, "role", None) != "admin":
+        flash("Access denied: admin only", "error")
+        return redirect(url_for('home'))
+    user = User.query.get_or_404(id)
+    if user.role != 'admin':
+        flash("Error: user is already assigned the user role.", "danger")
+        return redirect(url_for('user_overview'))
+    user.role = 'user'
+    db.session.commit()
+    flash(f"{user.email} demoted to user.", "success")
+    return redirect(url_for('user_overview'))
 
 #Log-in Route
 @app.route('/login', methods=["GET", "POST"])
@@ -713,7 +932,6 @@ def stock_admin(page_num):
 @app.route('/add_stock_page', methods=['GET', 'POST'])
 @login_required
 def add_stock_page():
-    # admin-only access
     if getattr(current_user, "role", None) != "admin":
         flash("Access denied: admin only", "error")
         return redirect(url_for("home"))
@@ -739,7 +957,7 @@ def add_stock_page():
             flash(f"A stock with ticker '{ticker}' already exists.", "danger")
             return redirect(url_for("add_stock_page"))
 
-        new_stock = Stock(name=name, price=price, volume=volume, ticker=ticker)
+        new_stock = Stock(name=name, price=price, previous_price=None, volume=volume, ticker=ticker)
         db.session.add(new_stock)
         db.session.commit()
         flash(f"Stock '{name}' added.", "success")
@@ -774,6 +992,8 @@ def edit_stock(id):
             return redirect(url_for('edit_stock_page', id=id))
 
         stock.name = name
+        #saves prev price when admin changes price of stock
+        stock.previous_price = stock.price if stock.price is not None else None
         stock.price = price
         stock.volume = volume
         stock.ticker = ticker
@@ -797,7 +1017,7 @@ def edit_market_hours():
     day.end_time = request.form["end_time"]
     db.session.commit()
     flash(f"Updated!", "success")
-    return render_template("trading_hours.html")
+    return redirect(url_for('trading_hours'))
 
 #Admin Holiday Management Page
 @app.route("/holiday_admin", defaults={'page_num': 1})

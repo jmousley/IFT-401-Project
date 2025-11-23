@@ -33,9 +33,23 @@
         </div>
         <div class="col-md-6 pb-3">
           <div class="mb-3 mt-3 secondary d-flex flex-column align-items-start p-3 rounded">
-            <h4 class="mb-1">Portfolio Value:</h4>
-            <h3 class="mb-3">${{ '%.2f'|format(portfolio_value) }}</h3>
-          </div>
+              <h4 class="mb-1">Portfolio Value:</h4>
+              {% set prev_total = (current_user.previous_portfolio_value if current_user.is_authenticated else None) %}
+              <h3 class="mb-3">${{ '%.2f'|format(portfolio_value) }}
+                {% if prev_total is not none and prev_total > 0 %}
+                  {% set total_pct = ((portfolio_value - prev_total) / prev_total) * 100 %}
+                  {% if total_pct > 0 %}
+                    <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }})%&uarr;</small>
+                  {% elif total_pct < 0 %}
+                    <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }})%&darr;</small>
+                  {% else %}
+                    <small class="ms-2">({{ '%+.2f'|format(total_pct) }})%</small>
+                  {% endif %}
+                {% else %}
+                  <small class="ms-2">N/A</small>
+                {% endif %}
+              </h3>
+            </div>
         </div>
       </div>
 
@@ -66,6 +80,14 @@
         </div>
 
         <div class="col-md-4 pb-3 d-flex">
+            <a href="{{ url_for('feedback') }}" class="text-decoration-none text-reset flex-fill button text-center pb-3" style="height: 100%;">
+              <div class="mb-3 mt-3 secondary d-flex flex-column p-3 rounded justify-content-center" style="height: 100%;">
+                <h4 class="mb-1">User Feedback</h4>
+              </div>
+            </a>
+        </div>
+
+        <div class="col-md-4 pb-3 d-flex">
             <a href="{{ url_for('user_overview') }}" class="text-decoration-none text-reset flex-fill button text-center pb-3" style="height: 100%;">
               <div class="mb-3 mt-3 secondary d-flex flex-column p-3 rounded justify-content-center" style="height: 100%;">
                 <h4 class="mb-1">User Overview</h4>
@@ -78,7 +100,13 @@
 
     <!-- Right side -->
     <div class="col-md-7">
-      <h3>Transaction history</h3>
+      <div class="d-flex align-items-center">
+        <h3 class="me-3">Transaction history</h3>
+        <div class="search-container mb-3" style="display:inline-block; vertical-align: middle; margin-left: 10px;">
+          <i class="bi bi-search search-icon"></i>
+          <input id="adminSearch" type="text" class="transparent-input" placeholder="Search by user or stock..." name="q" style="min-width: 300px; padding-left: 35px;" aria-label="Search transactions">
+        </div>
+      </div>
       <div class="mb-3 mt-3 secondary p-3 rounded d-flex flex-column" style="height: 500px; padding: 0.75rem;">
           <div class="flex-grow-1 overflow-auto" style="min-height:0; /* allow flex child to scroll */">
             <table class="table table-dark table-striped table-sm mb-0">
@@ -93,7 +121,7 @@
                   <th>Total</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="admin_txn_list">
                 {% if transaction_summary %}
                   {% for t in transaction_summary %}
                   <tr>
@@ -111,6 +139,58 @@
                 {% endif %}
               </tbody>
             </table>
+            </div>
+            <script>
+              (function(){
+                const input = document.getElementById('adminSearch');
+                const tbody = document.getElementById('admin_txn_list');
+
+                function clearNoResults(){
+                  const existing = document.getElementById('adminNoResultsRow');
+                  if(existing) existing.remove();
+                }
+
+                function showNoResults(){
+                  clearNoResults();
+                  const tr = document.createElement('tr');
+                  tr.id = 'adminNoResultsRow';
+                  const td = document.createElement('td');
+                  td.colSpan = 7;
+                  td.style.textAlign = 'center';
+                  td.textContent = 'No transactions match your search.';
+                  tr.appendChild(td);
+                  tbody.appendChild(tr);
+                }
+
+                function filterRows(){
+                  const q = (input.value || '').trim().toLowerCase();
+                  const rows = Array.from(tbody.querySelectorAll('tr'));
+                  let visible = 0;
+                  rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if(cells.length < 4){
+                      row.style.display = q ? 'none' : '';
+                      return;
+                    }
+                    const user = (cells[2].textContent || '').toLowerCase();
+                    const stock = (cells[3].textContent || '').toLowerCase();
+                    if(!q || user.indexOf(q) !== -1 || stock.indexOf(q) !== -1){
+                      row.style.display = '';
+                      visible += 1;
+                    } else {
+                      row.style.display = 'none';
+                    }
+                  });
+                  clearNoResults();
+                  if(visible === 0) showNoResults();
+                }
+
+                if(input){
+                  input.addEventListener('input', filterRows);
+                  window.addEventListener('load', function(){ if(input.value) filterRows(); });
+                }
+              })();
+            </script>
           </div>
         </div>
       </div>

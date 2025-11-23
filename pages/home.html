@@ -4,34 +4,132 @@
 <style>
   :root{
     --nav-h: 56px;
-    --gap: clamp(18px, 3.5vh, 36px);
-    --maxw: 820px;
-    --cardw: 540px;
+    --home-gap: clamp(1.5rem, 3vh, 2.5rem);
+    --home-maxw: 820px;
+    --home-cardw: 540px;
   }
 
   html, body { height: 100%; }
   body { overflow: hidden; }
 
-
   .home-viewport{
-    height: calc(100svh - var(--nav-h));
-    display: grid;
-    place-items: center;
-    padding: 0 16px; 
+    min-height: calc(100vh - var(--nav-h));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.5rem 3rem;
   }
+
   .home-stack{
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: var(--gap);
-    width: min(var(--maxw), 100%);
+    gap: var(--home-gap);
+    width: min(var(--home-maxw), 100%);
   }
+
   .home-card{
-    width: min(var(--cardw), 100%);
+    width: min(var(--home-cardw), 100%);
   }
- 
-  .home-title{ letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
+
+  .home-title{
+    letter-spacing: -0.03em;
+    margin: 0;
+    line-height: 1.1;
+    text-shadow: 0 14px 40px rgba(0,0,0,0.8);
+  }
+
+  .home-subtitle{
+    color: rgba(255,255,255,0.78);
+  }
+
+  .home-card-main,
+  .home-card-links{
+    background: rgba(145,93,74,0.94); /* same brown, slightly transparent */
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,0.7);
+    box-shadow: 0 22px 55px rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+  }
+
+  .home-card-main .card-header{
+    border-bottom: 1px solid rgba(0,0,0,0.5);
+    background: transparent;
+    padding-bottom: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .home-card-main .card-title{
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .home-card-main .card-text{
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.78);
+  }
+
+  .home-card-main .btn-row{
+    display: flex;
+    justify-content: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-home-primary,
+  .btn-home-secondary,
+  .btn-support{
+    border-radius: 999px;
+    padding: 0.45rem 1.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .btn-home-primary{
+    background-color: #ddb967;
+    color: #301414;
+    border: none;
+  }
+
+  .btn-home-primary:hover{
+    background-color: #e6c978;
+    color: #301414;
+  }
+
+  .btn-home-secondary{
+    background-color: transparent;
+    color: #ddb967;
+    border: 1px solid #ddb967;
+  }
+
+  .btn-home-secondary:hover{
+    background-color: #ddb967;
+    color: #301414;
+  }
+
+  .home-card-links{
+    margin-top: 0.75rem;
+    padding: 0.9rem 1.1rem;
+  }
+
+  .home-card-links .btn{
+    width: 100%;
+  }
+
+  .btn-support{
+    background-color: rgb(201,120,83);
+    color: #fff;
+    border: none;
+  }
+
+  .btn-support:hover{
+    background-color: rgb(210,135,95);
+    color: #fff;
+  }
 </style>
 <body id="home_body">
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -48,25 +146,26 @@
 
       
       <div class="w-100">
-        <h1 class="display-4 home-title mb-1">The Incredibly Realistic Cool Stock Trader&#8482;</h1>
-        <p class="lead mb-0">This site is under construction.</p>
+        <h1 class="display-4 home-title mb-1">BusyBee Trading&#8482;</h1>
       </div>
 
       
-      <div class="card text-white secondary home-card">
+      <div class="card text-white secondary home-card home-card-main">
+        <div class="card-header">
+          Welcome back
+        </div>
         <div class="card-body">
-          <h5 class="card-title mb-2">Welcome back</h5>
-          <p class="card-text mb-3">Please log in to gain access to our services.</p>
-          <div class="d-flex justify-content-center gap-2">
-            <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
-            <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
-          </div>
+          <p class="card-text mb-3 fs-5">Log in to access your dashboard and start trading.</p>
+          <div class="btn-row">
+            <a href="{{ url_for('login') }}" class="btn btn-home-primary">Log In</a>
+            <a href="{{ url_for('register') }}" class="btn btn-home-secondary">Sign Up</a>
+         </div>
         </div>
       </div>
       
-      <div class="d-grid gap-2 home-card">
-        <a href="{{ url_for('contact') }}" class="btn btn-primary">Contact Us</a>
-        <a href="{{ url_for('support') }}" class="btn" style="background-color: rgb(201, 120, 83);">Support</a>
+      <div class="d-grid gap-2 home-card home-card-links">
+        <a href="{{ url_for('contact') }}" class="btn btn-home-primary">Contact Us</a>
+        <a href="{{ url_for('support') }}" class="btn btn-support">Support</a>
       </div>
 
     </div>
