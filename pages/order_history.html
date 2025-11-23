@@ -30,6 +30,10 @@
                         <p style="position: absolute; transform: translateY(-50%); font-weight:500">Filter: <u>Date (Ascending)</u></p>
                         {% endif %}
                     </button>
+                    <div class="search-container mb-3" style="display: inline-block; vertical-align: middle; margin-left: 20px; margin-top: -25px;">
+                        <i class="bi bi-search search-icon"></i>
+                        <input id="orderSearch" type="text" class="transparent-input" placeholder="Search..." name="q" style="min-width: 300px; padding-left: 35px;" aria-label="Search orders">
+                    </div>
                 </form>
                     <table class="table table-striped border-dark text-center"> 
                         <thead> 
@@ -63,6 +67,66 @@
                             {% endfor %} 
                         </tbody> 
                     </table>
+
+                    <script>
+                        (function(){
+                            const input = document.getElementById('orderSearch');
+                            const tbody = document.getElementById('order_list');
+
+                            function clearNoResults(){
+                                const existing = document.getElementById('noResultsRow');
+                                if(existing) existing.remove();
+                            }
+
+                            function showNoResults(){
+                                clearNoResults();
+                                const tr = document.createElement('tr');
+                                tr.id = 'noResultsRow';
+                                const td = document.createElement('td');
+                                td.colSpan = 6;
+                                td.style.textAlign = 'center';
+                                td.textContent = 'No transactions match your search.';
+                                tr.appendChild(td);
+                                tbody.appendChild(tr);
+                            }
+
+                            function filterOrders(){
+                                const q = (input.value || '').trim().toLowerCase();
+                                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                                let visibleCount = 0;
+                                rows.forEach(row => {
+                                    const cells = row.querySelectorAll('td');
+                                    if(cells.length < 3){
+                                        row.style.display = q ? 'none' : '';
+                                        return;
+                                    }
+
+                                    const name = (cells[1].textContent || '').toLowerCase();
+                                    const ticker = (cells[2].textContent || '').toLowerCase();
+
+                                    if(!q || name.indexOf(q) !== -1 || ticker.indexOf(q) !== -1){
+                                        row.style.display = '';
+                                        visibleCount += 1;
+                                    } else {
+                                        row.style.display = 'none';
+                                    }
+                                });
+
+                                clearNoResults();
+                                if(visibleCount === 0){
+                                    showNoResults();
+                                }
+                            }
+
+                            if(input){
+                                input.addEventListener('input', filterOrders);
+                                window.addEventListener('load', function(){
+                                    if(input.value) filterOrders();
+                                });
+                            }
+                        })();
+                    </script>
 
                     <nav class="mt-4" id="pagination">
                     <ul class="pagination justify-content-center custom-pagination">

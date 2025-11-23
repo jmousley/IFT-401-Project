@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Getting Started{% endblock %}
+{% block content %}
+<div class="container-fluid pt-4" style="padding-left: 5%; padding-right: 5%;"> 
+  <div class="row">
+    <div class="col-lg-10">
+      <h1>Welcome to Realistic Stock Trader</h1>
+      <p class="lead">For new users, welcome! This guide will help you get started on your stock-trading journey!</p>
+
+      <h3>Step 1. Create an Account</h3>
+      <p>Sign up using the <a href="{{ url_for('register') }}">Sign Up</a> page. After creating an account you may log in and gain access to buring and selling stocks, as well as developing your stock portfolio!</p>
+
+      <h3>Step 2. The different pages and keywords!</h3>
+      <ul>
+        <li><strong>Stocks</strong> - View the different stocks available for buying and selling, including current prices and recent changes.</li>
+        <li><strong>Portfolio</strong> - View your current estimates value in stock holdings and monitor the gains or losses!</li>
+        <li><strong>Profile</strong> - View the details of your account including First and Last name, email, password, and current balance! Your profile can be edited/deleted from this page.</li>
+        <li><strong>Order History</strong> - View your transactions and details about each transaction.</li>
+      </ul>
+
+      <h3>Step 3. Adding funds</h3>
+      <p>After account creation, you can add funds from your dashboard by clicking the <em>Add funds</em> button.</p>
+      <p><b>BE CAREFUL</b> stock prices are volatile and can change rapidly, so please invest wisely!</p>
+
+      <h3>Step 4. Buying and selling</h3>
+      <ul>
+        <li>Open the <strong>Buy</strong> page and select a stock. Enter quantity of how many shares and confirm the purchase!</li>
+        <p><em>Note, the price listed next to the stock is the price per 1 share!</em></p>
+        <li>For selling shares, go to <strong>Sell</strong> and choose how many shares of a stock to sell!</li>
+        <li>All orders will update your account balance and transaction history immediately!</li>
+      </ul>
+
+      <h3>Step 5. Tracking stock/portfolio value</h3>
+      <p>Individual stock value will update to display how much value and % change has occurred since the last price per share update!</p>
+      <p>Your portfolio value will also display the % change of all of your stock value per price update!</p>
+
+      <h3>Step 6. Support and Feedback</h3>
+      <p>If you find any issues, questions, concerns, or want to request a feature, use the <a href="{{ url_for('support') }}">Support page</a>!</p>
+      <p>Administrators will be able to view the submitted dashboard and will assist you as soon as possible!</p>
+
+      <h3>Step 7. Market Hours and Holidays</h3>
+      <p>Normal market hours are shown on the <a href="{{ url_for('about') }}">About Us</a> page.</p>
+      <p>Trades are only allowed while the market is open.</p>
+      <p>The page will list the Holidays and the market will be closed during those days.</p>
+
+      <h3>Tips for New Users</h3>
+      <ul>
+        <li>Start small! If you are new, try to exchange a few shares at a time to understand how the process works!</li>
+        <li>Keep an eye on the percent change and difference columns to learn how volatility affects your holdings!</li>
+        <li>Use the transaction history to view your past activity to see which stocks are performing well and which stocks are not!</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

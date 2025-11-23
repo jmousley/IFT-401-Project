@@ -298,6 +298,11 @@ def about():
 def contact():
     return render_template("contact.html")
 
+
+@app.route('/start_here')
+def start_here():
+    return render_template('start_here.html')
+
 @app.route("/support", methods=["GET", "POST"])
 def support():
     if request.method == "POST":

@@ -44,10 +44,10 @@
                                 {% if stock.previous_price is not none %}
                                 {% set diff = stock.price - stock.previous_price %}
                                 {% if diff > 0 %}
-                                <td style="color: rgb(145, 255, 145);">+${{ '%.2f'|format(diff)}}</td>
+                                <td style="color: rgb(145, 255, 145);">+${{ '%.2f'|format(diff)}}&uarr;</td>
                                 {% elif diff < 0 %}
                                 {% set diff = (diff * -1) %}
-                                <td style="color: rgb(255, 145, 145);">-${{ '%.2f'|format(diff)}}</td>
+                                <td style="color: rgb(255, 145, 145);">-${{ '%.2f'|format(diff)}}&darr;</td>
                                 {% else %}
                                 <td>{{ '%+.2f'|format(diff) }}</td>
                                 {% endif %}
@@ -55,9 +55,9 @@
                                 {% if stock.previous_price != 0 and stock.previous_price is not none %}
                                     {% set pct = ((stock.price - stock.previous_price) / stock.previous_price) * 100 %}
                                     {% if pct > 0 %}
-                                    <td style="color: rgb(145, 255, 145);">{{ '%+.2f'|format(pct) }}%</td>
+                                    <td style="color: rgb(145, 255, 145);">{{ '%+.2f'|format(pct) }}%&uarr;</td>
                                     {% elif pct < 0 %}
-                                    <td style="color: rgb(255, 145, 145);">{{ '%+.2f'|format(pct) }}%</td>
+                                    <td style="color: rgb(255, 145, 145);">{{ '%+.2f'|format(pct) }}%&darr;</td>
                                     {% else %}
                                     <td>{{ '%+.2f'|format(pct) }}%</td>
                                     {% endif %}
