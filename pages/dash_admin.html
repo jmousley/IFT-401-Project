@@ -39,9 +39,9 @@
                 {% if prev_total is not none and prev_total > 0 %}
                   {% set total_pct = ((portfolio_value - prev_total) / prev_total) * 100 %}
                   {% if total_pct > 0 %}
-                    <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                    <small class="ms-2" style="color: rgb(145, 255, 145);">({{ '%+.2f'|format(total_pct) }})%&uarr;</small>
                   {% elif total_pct < 0 %}
-                    <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }})%</small>
+                    <small class="ms-2" style="color: rgb(255, 145, 145);">({{ '%+.2f'|format(total_pct) }})%&darr;</small>
                   {% else %}
                     <small class="ms-2">({{ '%+.2f'|format(total_pct) }})%</small>
                   {% endif %}
